@@ -1,0 +1,25 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Feature Extraction}
+Symbol classification is crucial for OCR. The field of computer vision has developed many methods of extracting features from images, ranging from simple edge/corner detection to deep learning algorithms. From our research, it is clear that a neural network is crucial to uniquely identify symbols amongst a plethora of operators, Greek letters, and alphanumeric symbols. Specifically, a convolutional neural network (CNN) is excellent for processing images at multiple scale levels to intelligently extract objects.
+
+\subsection{Relationship Modeling}
+Additionally, in most practical computer vision applications, features have both an identity and a relationship with other features. Mathematical equations are no exception, and the relationship between symbols must be understood by the NN. We plan to use a graph neural network (GNN) to learn the relationships between the extracted mathematical symbols. 
+
+\subsection{Code Conversion}
+Finally, the extracted features must be converted into \LaTeX\ code. This perhaps requires the most experimentation, as many NNs have their advantages and disadvantages. We have decided to use a recurrent neural network (RNN) due to its uses in natural language processing, a field closely tied with OCR. Due to the RNN's ability to understand a time series, it may be effective in understanding a mathematical expression.
+
+For all the NN architectures discussed above, many open source models are available within PyTorch. For each module, we plan to edit, fine tune, and test multiple models to see which have the best performance.
+
+\subsection{Data Collection}
+We will begin by training with the well-used {\tt im2latex-100k} data set. Often used as a benchmark for image to \LaTeX\ applications, this data set contains PDF images of \LaTeX\ equations with their corresponding code. While the equations in this data set are extensive, they do not contain handwritten equations nor equations not created in \LaTeX. As such, we will apply transformations and distortion to the images to increase the complexity.
+
+To begin the transition to handwritten equations, a handwritten math symbols data set will be used to train the symbol extraction module\cite{HandwrittenMath}. Finally, the CROHME data set contains handwritten mathematical expressions with their \LaTeX\ code, which we will use to train our final neural network\cite{CROHME}.
+
+\subsection{Air Drawing}
+For hand tracking and gesture recognition, MediaPipe is an open source API that provides many real-time features. The team will use MediaPipe Hands, which uses "machine learning to track 21 3D landmarks [on the hand] from just a single frame" \cite{MP}. 
+
+The team will use openCV to capture each frame of the webcam. Each frame is passed into MediaPipe Hand to calculate the 21 3D landmarks of the hand. Based on the positions of these 21 3D landmarks, the program can detect the number of fingers that are raised. If index finger is raised, then the program would draw a point on the blank white canvas at the index finger location. If all fingers are raised, then the image of the canvas is fed into our OCR model for \LaTeX\ conversion. 
+
+
