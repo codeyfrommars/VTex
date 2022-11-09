@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from scaled_dot_product_attention import Attention
+from torch import Tensor
+from sublayers.scaled_dot_product_attention import Attention
 
 class MultiHead(nn.Module):
     """
@@ -21,25 +22,25 @@ class MultiHead(nn.Module):
         self.W_V = nn.Linear(self.dim_model, self.num_heads * self.dim_k)
         self.W_concat = nn.Linear(dim_model, dim_model)
 
-    def forward(self, Q, K, V, mask=None):
+    def forward(self, Q: Tensor, K, V, mask=None):
         # Apply weight matrices
         Q, K, V = self.W_Q(Q), self.W_K(K), self.W_V(V)
         
         # Split tensors into num_heads heads
-        # before: [batch_num, seq_len, dim_model]
-        # after: [batch_num, num_heads, seq_len, dim_k]
-        batch_num, seq_len, d_model = Q.size()
-        Q = Q.reshape(batch_num, seq_len, self.num_heads, self.dim_k).transpose(1,2)
-        K = K.reshape(batch_num, seq_len, self.num_heads, self.dim_k).transpose(1,2)
-        V = V.reshape(batch_num, seq_len, self.num_heads, self.dim_k).transpose(1,2)
+        # before: [batch_size, seq_len, dim_model]
+        # after: [batch_size, num_heads, seq_len, dim_k]
+        batch_size, seq_len, d_model = Q.size()
+        Q = Q.view(batch_size, seq_len, self.num_heads, self.dim_k).transpose(1,2)
+        K = K.view(batch_size, seq_len, self.num_heads, self.dim_k).transpose(1,2)
+        V = V.view(batch_size, seq_len, self.num_heads, self.dim_k).transpose(1,2)
 
         # Apply scaled dot product attention
         out = self.attention(Q, K, V, mask=mask)
 
         # Concatenate
-        # before: [batch_num, num_heads, seq_len, dim_k]
-        # after: [batch_num, seq_len, dim_model]
-        out = out.transpose(1,2).reshape(batch_num, seq_len, self.dim_model)
+        # before: [batch_size, num_heads, seq_len, dim_k]
+        # after: [batch_size, seq_len, dim_model]
+        out = out.transpose(1,2).contiguous().view(batch_size, seq_len, self.dim_model)
         out = self.W_concat(out)
 
         return out

@@ -1,11 +1,10 @@
 import torch
 import torch.nn as nn
+import math
 
 class Attention(nn.Module):
     """
-    Query:
-    Key:
-    Value:
+    Scaled dot product attention model
     """
     def __init__(self):
         super(Attention, self).__init__()
@@ -18,9 +17,10 @@ class Attention(nn.Module):
         """
         batch_size, num_heads, seq_len, dim_k = K.size()
 
-        K_T = K.transpose(2,3)
+        K_T = K.transpose(-2,-1)
 
-        attention = (torch.matmul(Q,  K_T)) / (dim_k ** (1/2))
+        # attention is of shape [batch_size, num_heads, seq_len, seq_len]
+        attention = (torch.matmul(Q,  K_T)) / math.sqrt(dim_k)
 
         # apply optional mask (-inf)
         if mask is not None:

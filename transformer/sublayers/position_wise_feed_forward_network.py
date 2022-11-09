@@ -3,6 +3,7 @@ import torch.nn as nn
 
 class FFN(nn.Module):
     """
+    Position-wise feed-forward network
     """
     def __init__(self, dim_model, dim_ff):
         super(FFN, self).__init__()
