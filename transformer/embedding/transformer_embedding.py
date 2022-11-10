@@ -21,6 +21,7 @@ class TransformerEmbedding(nn.Module):
         tok_emb = self.tok_emb(x)
         # tok_emb is [batch_size, seq_len, dim_model]
         _, seq_len, _ = tok_emb.size()
+        # pos_emb is [seq_len, dim_model]
         pos_emb = self.pos_emb(seq_len)
         # TODO: pos_emb should be properly broadcasted right?
         return self.dropout(tok_emb + pos_emb)

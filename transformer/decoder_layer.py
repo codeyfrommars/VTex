@@ -28,7 +28,7 @@ class DecoderLayer(nn.Module):
             dropout
         )
 
-    def forward(self, dec_in, enc_out, trg_mask, src_mask=None):
+    def forward(self, dec_in, enc_out, trg_mask, enc_mask=None):
         """
         dec_in is the decoder output fed back into decoder
         enc_out is key and value returned from encoder
@@ -36,7 +36,7 @@ class DecoderLayer(nn.Module):
         src_mask is optional
         """
         x = self.self_attn(dec_in, dec_in, dec_in, trg_mask)
-        x = self.src_attn(dec_in, enc_out, enc_out, src_mask)
+        x = self.src_attn(dec_in, enc_out, enc_out, enc_mask)
         x = self.ffn(x)
         
         return x

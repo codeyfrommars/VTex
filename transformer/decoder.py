@@ -28,26 +28,18 @@ class Decoder(nn.Module):
         )
         self.linear = nn.Linear(dim_model, vocab_size)
 
-    def make_trg_mask(self, size):
-        "Mask out subsequent positions for self attention"
-        mask = torch.full(
-            (size, size), fill_value=1, dtype=torch.bool, device=self.device
-        )
-        mask.triu_(1)  # zero out the lower diagonal
-        return mask
-
-    def forward(self, src, src_mask=None):
+    def forward(self, trg, enc_out, trg_mask, enc_mask=None):
+        """
+        trg [batch_size, seq_len]
+        src [batch_size, seq_len, dim_model]
+        mask [batch_size, 1, seq_len, seq_len]
+        """
         # add word + position embedding
         trg = self.embed(trg)
 
-        # build trg_mask for masked multi-head attention
-        # trg is shape [batch_size, seq_len, dim_model]
-        _, seq_len = trg.size()
-        trg_mask = self.make_trg_mask(seq_len)
-
         # apply decoder layers
         for layer in self.layers:
-            trg = layer(trg, src, trg_mask, src_mask)
+            trg = layer(trg, enc_out, trg_mask, enc_mask)
 
         # final linear layer
         out = self.linear(trg)
