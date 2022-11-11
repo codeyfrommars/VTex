@@ -10,6 +10,7 @@ bpoints = [deque(maxlen = 1024)]
 gpoints = [deque(maxlen = 1024)]
 rpoints = [deque(maxlen = 1024)]
 ypoints = [deque(maxlen = 1024)]
+wpoints = [deque(maxlen = 1024)]
 
 # These indexes will be used to mark position
 # of pointers in colour array
@@ -17,15 +18,16 @@ blue_index = 0
 green_index = 0
 red_index = 0
 yellow_index = 0
+white_index = 0
 
 # The colours which will be used as ink for
 # the drawing purpose
-colors = [(255, 0, 0), (0, 255, 0),
+colors = [(255, 255, 255), (255, 0, 0), (0, 255, 0),
         (0, 0, 255), (0, 255, 255)]
 colorIndex = 0
 
 # Here is code for Canvas setup
-paintWindow = np.zeros((471, 636, 3)) + 255
+paintWindow = np.zeros((471, 636, 3))   
 
 # For webcam input:
 cap = cv2.VideoCapture(0)
@@ -34,12 +36,13 @@ with mp_hands.Hands(
     model_complexity=0,
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5) as hands:
+
+    imageIndex = 0
+    screenshotFlag = True
+    # screenshotWait = 45
     while cap.isOpened():
         success, image = cap.read()
-        pause += 1
-        if pause >= 10000:
-            pause = 0
-            print(image.shape)
+
         if not success:
             print("Ignoring empty camera frame.")
             # If loading a video, use 'break' instead of 'continue'.
@@ -50,7 +53,7 @@ with mp_hands.Hands(
         image.flags.writeable = False
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = hands.process(image)
-        print(results)
+        # print(results)
 
         # Draw the hand annotations on the image.
         image.flags.writeable = True
@@ -65,8 +68,6 @@ with mp_hands.Hands(
             # Get hand index to check label (left or right)
                 handIndex = results.multi_hand_landmarks.index(hand_landmarks)
                 handLabel = results.multi_handedness[handIndex].classification[0].label
-                if handLabel == "Right":
-                    continue
 
                 # Set variable to keep landmarks positions (x and y)
                 handLandmarks = []
@@ -86,25 +87,47 @@ with mp_hands.Hands(
 
                 # Other fingers: TIP y position must be lower than PIP y position, 
                 #   as image origin is in the upper left corner.
-                if handLandmarks[8][1] < handLandmarks[6][1]:       #Index finger
-                    point = handLandmarks[8]
-                    point = (int(point[0]*image.shape[1]), int(point[1]*image.shape[1]))
-                    if colorIndex == 0:
-                        bpoints[blue_index].appendleft(point)
-                else:
-                    bpoints.append(deque(maxlen = 512))
-                    blue_index += 1
+
+                if handLabel == "Right":
+                    if handLandmarks[12][1] < handLandmarks[10][1] and \
+                    handLandmarks[16][1] < handLandmarks[14][1] and \
+                    handLandmarks[20][1] < handLandmarks[18][1] and \
+                    handLandmarks[8][1] < handLandmarks[6][1]:
+                        paintWindow = np.zeros((471, 636, 3))   
+                        wpoints = [deque(maxlen = 1024)]
+                        white_index = 0
+                        continue
+                elif handLabel == "Left":
+                    if handLandmarks[12][1] < handLandmarks[10][1] and \
+                    handLandmarks[16][1] < handLandmarks[14][1] and \
+                    handLandmarks[20][1] < handLandmarks[18][1] and \
+                    handLandmarks[8][1] < handLandmarks[6][1] and \
+                    screenshotFlag:
+                        cv2.imwrite('/UTAustin/Fall2022/CV/VTex/mediapipe/screenshots' + str(imageIndex) + '.png',cv2.flip(paintWindow, 1))
+                        imageIndex += 1
+                        screenshotFlag = False
+                        # screenshotWait = 0
+                        print("here")
+                    elif handLandmarks[12][1] >= handLandmarks[10][1] and \
+                    handLandmarks[16][1] >= handLandmarks[14][1] and \
+                    handLandmarks[20][1] >= handLandmarks[18][1] and \
+                    handLandmarks[8][1] < handLandmarks[6][1]:     
+                        point = handLandmarks[8]
+                        point = (int(point[0]*image.shape[1]), int(point[1]*image.shape[1]))
+                        if colorIndex == 0:
+                            wpoints[white_index].appendleft(point)
+                        screenshotFlag = True
+                        # screenshotWait += 1
+                    else:
+                        wpoints.append(deque(maxlen = 512))
+                        white_index += 1
+                        # screenshotFlag = True
+                        # screenshotWait += 1
                 # print(point)
             #   pause += 1
             #   if pause >= 10:
             #     print(handLandmarks[8][1], handLandmarks[6][1])
             #     pause = 0
-            #   fingerCount = fingerCount+1
-            # if handLandmarks[12][1] < handLandmarks[10][1]:     #Middle finger
-            #   fingerCount = fingerCount+1
-            # if handLandmarks[16][1] < handLandmarks[14][1]:     #Ring finger
-            #   fingerCount = fingerCount+1
-            # if handLandmarks[20][1] < handLandmarks[18][1]:     #Pinky
             #   fingerCount = fingerCount+1
 
             # if colorIndex == 0:
@@ -137,7 +160,7 @@ with mp_hands.Hands(
                 mp_hands.HAND_CONNECTIONS,
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style())
-        points = [bpoints]
+        points = [wpoints]
         for i in range(len(points)):
             
             for j in range(len(points[i])):
