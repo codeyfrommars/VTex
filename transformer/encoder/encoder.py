@@ -17,39 +17,42 @@ class Encoder(nn.Module):
 
         # 1x1 convolution to reshape CNN's output to transformer's d_model dimensions
         self.reshape_conv = nn.Conv2d(self.cnn.out_features, dim_model, kernel_size=1)
+        self.reshape_norm = nn.BatchNorm2d(dim_model)
         self.reshape_relu = nn.ReLU(inplace=True)
 
         # Image positional encoding
-        self.embed = EncoderEmbedding(height, width, dim_model)
+        self.embed = EncoderEmbedding(height//16, width//16, dim_model)
         self.dim_model = dim_model
 
     def forward(self, img):
         """
         img [batch_size, channels=1, height, width]
-        output [batch_size, height+width, dim_model]
+        output [batch_size, (height+width)//16, dim_model]
         """
         batch_size, _, height, width = img.size()
         # Feature extraction
+        # [batch_size, out_features, height/16, width/16]
         features = self.cnn(img)
 
-        # Feature reshape to [batch_size, dim_model, height, width]
+        # Feature reshape to [batch_size, dim_model, height/16, width/16]
         features = self.reshape_conv(features)
+        features = self.reshape_norm(features)
         features = self.reshape_relu(features)
 
-        # Rearrange to [batch_size, height, width, dim_model]
+        # Rearrange to [batch_size, height/16, width/16, dim_model]
         features = torch.permute(features, (0, 2, 3, 1))
 
-        assert (features.size() == (batch_size, height, width, self.dim_model)), "feature reshape incorrect shape"
+        assert (features.size() == (batch_size, height//16, width//16, self.dim_model)), "feature reshape incorrect shape"
 
         # Image positional encoding
         features = self.embed(features)
 
         # Reshape from 2D to 1D
-        # before: [batch_size, height, width, dim_model]
-        # after: [batch_size, height+width, dim_model]
-        features = features.contiguous().view(batch_size, height+width, self.dim_model)
+        # before: [batch_size, height/16, width/16, dim_model]
+        # after: [batch_size, height/16 + width/16, dim_model]
+        features = features.contiguous().view(batch_size, height//16 + width//16, self.dim_model)
 
-        assert (features.size() == (batch_size, height+width, self.dim_model)), "Encoder output incorrect shape"
+        assert (features.size() == (batch_size, height//16 + width//16, self.dim_model)), "Encoder output incorrect shape"
 
         return features
 

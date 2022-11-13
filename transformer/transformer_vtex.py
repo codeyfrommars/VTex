@@ -11,37 +11,47 @@ class Transformer(nn.Module):
     def __init__(
             self,
             device,
-            src_vocab_size,
             trg_vocab_size,
-            src_pad_idx,
             trg_pad_idx,
-            max_length,
+            max_trg_length,
+            img_height,
+            img_width,
+            growth_rate=24,
+            block_depth=16,
+            compression=0.5,
             num_layers=6,
             num_heads=8,
             dim_model=512,
             dim_ff=2048,
-            dropout=0.1
+            dropout_enc=0.2,
+            dropout_dec=0.1
         ):
         super(Transformer, self).__init__()
         self.device = device
-        self.src_pad_idx = src_pad_idx
+
         self.trg_pad_idx = trg_pad_idx
+        self.height = img_height
+        self.width = img_width
         
-        self.encoder = Encoder(num_layers, src_vocab_size, dim_model, num_heads, dim_ff, dropout, max_length)
-        self.decoder = Decoder(num_layers, trg_vocab_size, dim_model, num_heads, dim_ff, dropout, max_length)
+        self.encoder = Encoder(growth_rate, block_depth, compression, dropout_enc, img_height, img_width, dim_model)
+        self.decoder = Decoder(num_layers, trg_vocab_size, dim_model, num_heads, dim_ff, dropout_dec, max_trg_length)
 
     def forward(self, src, trg):
         """
-        src [batch_size, src_seq_len]
+        src [batch_size, channels=1, height, width]
         trg [batch_size, trg_seq_len]
         """
-        src_mask = self._make_pad_mask(src, self.src_pad_idx)
+
+        # Create pad masks for transformer
         # TODO: encoder-decoder pad mask
         # enc_dec_mask = self.make_pad_mask()
         trg_mask = self._make_pad_mask(trg, self.trg_pad_idx) * self._make_trg_mask(trg)
 
-        # enc_out [batch_size, src_seq_len, dim_model]
-        enc_out = self.encoder(src, src_mask)
+        # Encoder
+        # enc_out [batch_size, height+width, dim_model]
+        enc_out = self.encoder(src)
+
+        # Decoder
         # dec_out [batch_size, trg_seq_len, trg_vocab_size]
         dec_out = self.decoder(trg, enc_out, trg_mask)
         
@@ -86,22 +96,20 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # TODO: new src
-    src = torch.tensor([[1,5,6,4,3,4,7,2,0],[1,5,3,6,7,1,9,9,2]]).to(device)
+    # new src [2, 1, 32, 32]
+    src1 = torch.rand(32, 32).unsqueeze(0).to(device)
+    src2 = torch.rand(32, 32).unsqueeze(0).to(device)
+    src = torch.stack((src1, src2), dim=0)
+
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
 
-    src_vocab_size = 10
     trg_vocab_size = 10
-    src_pad_idx = 0
     trg_pad_idx = 0
-    max_length=100
-    num_layers=6
-    num_heads=8
-    dim_model=512
-    dim_ff=2048
-    dropout=0.1
+    max_trg_length = 100
+    img_height = 32
+    img_width = 32
 
-    model = Transformer(device, src_vocab_size, trg_vocab_size, src_pad_idx, trg_pad_idx, max_length).to(device)
+    model = Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, img_height, img_width).to(device)
 
     out = model(src, trg[:, :-1])
     print(out.shape)

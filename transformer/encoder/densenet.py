@@ -36,7 +36,8 @@ class _DenseBlock(nn.Module):
 
     def forward(self, x):
         """
-        x [batch_size, channels, height, width]
+        x [batch_size, num_features, height, width]
+        out [batch_size, num_features + block_depth*growth_rate, height, width]
         """
         features = [x]
         for layer in self.layers:
@@ -54,6 +55,10 @@ class _Transition(nn.Module):
         self.pool = nn.AvgPool2d(kernel_size=2, stride=2)
 
     def forward(self, x):
+        """
+        x [batch_size, channels, height, width]
+        out [batch_size, channels*compression, height/2, width/2]
+        """
         out = self.relu(self.norm(x))
         out = self.conv(out)
         return self.pool(out)
@@ -93,21 +98,24 @@ class DenseNet(nn.Module):
     def forward(self, x):
         """
         x [batch_size, channels=1, height, width]
-        out [batch_size, self.out_features, height, width]
+        out [batch_size, self.out_features, height/16, width/16]
         """
         batch_size, _, height, width = x.size()
         # Initial convolution + pooling
+        # hw/4
         out = self.pool0(self.relu0(self.norm0(self.conv0(x))))
 
         # DenseB-Transition-DenseB-Transition-DenseB
         out = self.block1(out)
+        # hw/2
         out = self.trans1(out)
         out = self.block2(out)
+        # hw/2
         out = self.trans2(out)
         out = self.block3(out)
         out = self.post_norm(out)
 
-        assert (out.size() == (batch_size, self.out_features, height, width)), "CNN output incorrect shape"
+        assert (out.size() == (batch_size, self.out_features, height//16, width//16)), "CNN output incorrect shape"
 
         return out
 
