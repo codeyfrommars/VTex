@@ -4,12 +4,12 @@ import torch.nn as nn
 from embedding.embeddings import Embeddings
 from embedding.positional_encoding import PositionalEncoding
 
-class TransformerEmbedding(nn.Module):
+class DecoderEmbedding(nn.Module):
     """
     Applies token embedding, adds the positional encoding, then applies dropout
     """
     def __init__(self, dim_model, vocab_size, max_length, dropout):
-        super(TransformerEmbedding, self).__init__()
+        super(DecoderEmbedding, self).__init__()
         self.tok_emb = Embeddings(vocab_size, dim_model)
         self.pos_emb = PositionalEncoding(dim_model, max_length)
         self.dropout = nn.Dropout(dropout)
@@ -23,5 +23,42 @@ class TransformerEmbedding(nn.Module):
         _, seq_len, _ = tok_emb.size()
         # pos_emb is [seq_len, dim_model]
         pos_emb = self.pos_emb(seq_len)
-        # TODO: pos_emb should be properly broadcasted right?
+        
         return self.dropout(tok_emb + pos_emb)
+
+class EncoderEmbedding(nn.Module):
+    """
+    Applies positional encoding over 2D, embedding pixel position information
+    """
+    def __init__(self, height, width, dim_model):
+        super(EncoderEmbedding, self).__init__()
+        # [width, dim_model//2]
+        self.x_pos_emb = PositionalEncoding(dim_model//2, width)
+        # [height, dim_model//2]
+        self.y_pos_emb = PositionalEncoding(dim_model//2, height)
+        self.dim_model = dim_model
+
+    def forward(self, x):
+        """
+        Adds the positional encoding to x
+        x [batch_size, height, width, dim_model]
+        """
+        _, height, width, _ = x.size()
+        # Concatenate the x_pos_emb and y_pos_emb
+        x_pos_emb = self.x_pos_emb(width)
+        y_pos_emb = self.y_pos_emb(height)
+        # [width, dim_model//2] -> [height, width, dim_model//2]
+        x_pos_emb = x_pos_emb.unsqueeze(0)
+        x_pos_emb = x_pos_emb.repeat(height, 1, 1)
+        # [height, dim_model//2] -> [height, width, dim_model//2]
+        y_pos_emb = y_pos_emb.unsqueeze(1)
+        y_pos_emb = y_pos_emb.repeat(1, width, 1)
+        assert (x_pos_emb.size() == y_pos_emb.size() == (height, width, self.dim_model//2)), "x,y positional encodings incorrect size"
+    
+        # [height, width, dim_model]
+        pos_emb = torch.cat((x_pos_emb, y_pos_emb), dim=2)
+
+        assert (pos_emb.size() == (height, width, self.dim_model)), "image positional encodings incorrect size"
+
+        return x + pos_emb
+

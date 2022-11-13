@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
-from decoder_layer import DecoderLayer
-from embedding.transformer_embedding import TransformerEmbedding
+from encoder.encoder_layer_classic import EncoderLayer
+from embedding.transformer_embedding import DecoderEmbedding
 
-class Decoder(nn.Module):
+class Encoder(nn.Module):
     """
     """
     def __init__(self, num_layers, vocab_size, dim_model, num_heads, dim_ff, dropout, max_length):
@@ -17,31 +17,26 @@ class Decoder(nn.Module):
         dropout: dropout probability
         max_length: max sequence length
         """
-        super(Decoder, self).__init__()
-        self.embed = TransformerEmbedding(dim_model, vocab_size, max_length, dropout)
+        super(Encoder, self).__init__()
+        self.embed = DecoderEmbedding(dim_model, vocab_size, max_length, dropout)
 
         self.layers = nn.ModuleList(
             [
-                DecoderLayer(dim_model, num_heads, dim_ff, dropout)
+                EncoderLayer(dim_model, num_heads, dim_ff, dropout)
                 for _ in range(num_layers)
             ]
         )
-        self.linear = nn.Linear(dim_model, vocab_size)
 
-    def forward(self, trg, enc_out, trg_mask, enc_mask=None):
+    def forward(self, src, src_mask=None):
         """
-        trg [batch_size, seq_len]
-        src [batch_size, seq_len, dim_model]
+        src [batch_size, seq_len]
         mask [batch_size, 1, seq_len, seq_len]
         """
         # add word + position embedding
-        trg = self.embed(trg)
+        src = self.embed(src)
 
-        # apply decoder layers
+        # apply encoder layers
         for layer in self.layers:
-            trg = layer(trg, enc_out, trg_mask, enc_mask)
+            src = layer(src, src_mask)
 
-        # final linear layer
-        out = self.linear(trg)
-
-        return out
+        return src

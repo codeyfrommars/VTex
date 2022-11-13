@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
 
-from encoder_layer import EncoderLayer
-from embedding.transformer_embedding import TransformerEmbedding
+from decoder.decoder_layer import DecoderLayer
+from embedding.transformer_embedding import DecoderEmbedding
 
-class Encoder(nn.Module):
+class Decoder(nn.Module):
     """
+    Decoder for VTex transformer. Target is a LaTeX string.
     """
     def __init__(self, num_layers, vocab_size, dim_model, num_heads, dim_ff, dropout, max_length):
         """
@@ -17,26 +18,31 @@ class Encoder(nn.Module):
         dropout: dropout probability
         max_length: max sequence length
         """
-        super(Encoder, self).__init__()
-        self.embed = TransformerEmbedding(dim_model, vocab_size, max_length, dropout)
+        super(Decoder, self).__init__()
+        self.embed = DecoderEmbedding(dim_model, vocab_size, max_length, dropout)
 
         self.layers = nn.ModuleList(
             [
-                EncoderLayer(dim_model, num_heads, dim_ff, dropout)
+                DecoderLayer(dim_model, num_heads, dim_ff, dropout)
                 for _ in range(num_layers)
             ]
         )
+        self.linear = nn.Linear(dim_model, vocab_size)
 
-    def forward(self, src, src_mask=None):
+    def forward(self, trg, enc_out, trg_mask, enc_mask=None):
         """
-        src [batch_size, seq_len]
+        trg [batch_size, seq_len]
+        enc_out [batch_size, seq_len, dim_model]
         mask [batch_size, 1, seq_len, seq_len]
         """
         # add word + position embedding
-        src = self.embed(src)
+        trg = self.embed(trg)
 
-        # apply encoder layers
+        # apply decoder layers
         for layer in self.layers:
-            src = layer(src, src_mask)
+            trg = layer(trg, enc_out, trg_mask, enc_mask)
 
-        return src
+        # final linear layer
+        out = self.linear(trg)
+
+        return out

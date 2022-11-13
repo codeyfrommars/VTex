@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from encoder import Encoder
-from decoder import Decoder
+from encoder.encoder import Encoder
+from decoder.decoder import Decoder
 
 class Transformer(nn.Module):
     """
@@ -35,10 +35,10 @@ class Transformer(nn.Module):
         src [batch_size, src_seq_len]
         trg [batch_size, trg_seq_len]
         """
-        src_mask = self.make_pad_mask(src, self.src_pad_idx)
+        src_mask = self._make_pad_mask(src, self.src_pad_idx)
         # TODO: encoder-decoder pad mask
         # enc_dec_mask = self.make_pad_mask()
-        trg_mask = self.make_pad_mask(trg, self.trg_pad_idx) * self.make_trg_mask(trg)
+        trg_mask = self._make_pad_mask(trg, self.trg_pad_idx) * self._make_trg_mask(trg)
 
         # enc_out [batch_size, src_seq_len, dim_model]
         enc_out = self.encoder(src, src_mask)
@@ -48,7 +48,7 @@ class Transformer(nn.Module):
         return dec_out
 
     
-    def make_pad_mask(self, x, pad):
+    def _make_pad_mask(self, x, pad):
         "This mask hides padding"
         # x is shape [batch_size, seq_len]
         batch_size, seq_len = x.size()
@@ -60,7 +60,7 @@ class Transformer(nn.Module):
         assert (mask.size() == (batch_size, 1, seq_len, seq_len)), "make_pad_mask incorrect"
         return mask
     
-    def make_trg_mask(self, trg):
+    def _make_trg_mask(self, trg):
         """
         This mask hides future words, preserving autoregressive property
         [[1, 0, 0]
@@ -86,6 +86,7 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # TODO: new src
     src = torch.tensor([[1,5,6,4,3,4,7,2,0],[1,5,3,6,7,1,9,9,2]]).to(device)
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
 
