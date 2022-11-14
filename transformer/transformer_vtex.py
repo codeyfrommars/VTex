@@ -48,7 +48,7 @@ class Transformer(nn.Module):
         trg_mask = self._make_pad_mask(trg, self.trg_pad_idx) * self._make_trg_mask(trg)
 
         # Encoder
-        # enc_out [batch_size, height+width, dim_model]
+        # enc_out [batch_size, (height//16) * (width//16), dim_model]
         enc_out = self.encoder(src)
 
         # Decoder
@@ -96,9 +96,9 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # new src [2, 1, 32, 32]
-    src1 = torch.rand(32, 32).unsqueeze(0).to(device)
-    src2 = torch.rand(32, 32).unsqueeze(0).to(device)
+    # new src [2, 1, 1000, 1000]
+    src1 = torch.rand(1000, 1000).unsqueeze(0).to(device)
+    src2 = torch.rand(1000, 1000).unsqueeze(0).to(device)
     src = torch.stack((src1, src2), dim=0)
 
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     trg_vocab_size = 10
     trg_pad_idx = 0
     max_trg_length = 100
-    img_height = 32
-    img_width = 32
+    img_height = 1000
+    img_width = 1000
 
     model = Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, img_height, img_width).to(device)
 

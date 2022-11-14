@@ -27,7 +27,7 @@ class Encoder(nn.Module):
     def forward(self, img):
         """
         img [batch_size, channels=1, height, width]
-        output [batch_size, (height+width)//16, dim_model]
+        output [batch_size, (height*width)//16, dim_model]
         """
         batch_size, _, height, width = img.size()
         # Feature extraction
@@ -49,10 +49,10 @@ class Encoder(nn.Module):
 
         # Reshape from 2D to 1D
         # before: [batch_size, height/16, width/16, dim_model]
-        # after: [batch_size, height/16 + width/16, dim_model]
-        features = features.contiguous().view(batch_size, height//16 + width//16, self.dim_model)
+        # after: [batch_size, height/16 * width/16, dim_model]
+        features = torch.flatten(features, start_dim=1, end_dim=2)
 
-        assert (features.size() == (batch_size, height//16 + width//16, self.dim_model)), "Encoder output incorrect shape"
+        assert (features.size() == (batch_size, (height//16) * (width//16), self.dim_model)), "Encoder output incorrect shape"
 
         return features
 
