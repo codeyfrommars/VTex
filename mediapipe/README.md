@@ -12,7 +12,9 @@ Code modified from an existant user that counts how many fingers are raised in r
 python Demo2.py
 ```
 ## Air Drawing
-Still needs to implement screenshots with a hand gesture. Needs to improve finger tip offset problem for drawing
+Draw at the tip of your right index finger when your right finger is the only one raised
+- five fingers raised on the left hand: clear drawing 
+- five fingers raised on the right hand: take a screenshot and store it in /mediapipe/screenshots
 ```
 python airdraw.py
 ```
