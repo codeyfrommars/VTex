@@ -88,6 +88,7 @@ with mp_hands.Hands(
                 # Other fingers: TIP y position must be lower than PIP y position, 
                 #   as image origin is in the upper left corner.
 
+                # if all 5 fingers of your left hand are raised, then clear drawings
                 if handLabel == "Right":
                     if handLandmarks[12][1] < handLandmarks[10][1] and \
                     handLandmarks[16][1] < handLandmarks[14][1] and \
@@ -97,23 +98,31 @@ with mp_hands.Hands(
                         wpoints = [deque(maxlen = 1024)]
                         white_index = 0
                         continue
+
                 elif handLabel == "Left":
+                    # screenshot if 5 right fingers are raised
                     if handLandmarks[12][1] < handLandmarks[10][1] and \
                     handLandmarks[16][1] < handLandmarks[14][1] and \
                     handLandmarks[20][1] < handLandmarks[18][1] and \
                     handLandmarks[8][1] < handLandmarks[6][1] and \
                     screenshotFlag:
-                        cv2.imwrite('/UTAustin/Fall2022/CV/VTex/mediapipe/screenshots' + str(imageIndex) + '.png',cv2.flip(paintWindow, 1))
+                        cv2.imwrite('/UTAustin/Fall2022/CV/VTex/mediapipe/screenshots/' + str(imageIndex) + '.png',cv2.flip(paintWindow, 1))
                         imageIndex += 1
                         screenshotFlag = False
                         # screenshotWait = 0
                         print("here")
+
+                    # right index finger is raised to draw
                     elif handLandmarks[12][1] >= handLandmarks[10][1] and \
                     handLandmarks[16][1] >= handLandmarks[14][1] and \
                     handLandmarks[20][1] >= handLandmarks[18][1] and \
                     handLandmarks[8][1] < handLandmarks[6][1]:     
+                        # index[0] = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * frame_width)
+                        # index[0] = max(0, min(index[0], frame_width))
+                        # index[1] = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * frame_height)
+                        # index[1] = max(0, min(index[1], frame_height))
                         point = handLandmarks[8]
-                        point = (int(point[0]*image.shape[1]), int(point[1]*image.shape[1]))
+                        point = (int(point[0]*image.shape[1]), int(point[1]*image.shape[0]))
                         if colorIndex == 0:
                             wpoints[white_index].appendleft(point)
                         screenshotFlag = True
