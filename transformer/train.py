@@ -12,8 +12,8 @@ gt_validation = "./transformer/data/gt_split/validation.tsv"
 tokensfile = "./transformer/data/tokens.tsv"
 root = "./transformer/data/train/"
 
-imgWidth = 500
-imgHeight = 500
+imgWidth = 256
+imgHeight = 256
 
 transformers = transforms.Compose(
     [
@@ -35,8 +35,8 @@ def train_loop(model, opt, loss_fn, dataloader, device):
         # x = torch.tensor(batch[:, 0], dtype=torch.long, device=device)
         # y = torch.tensor(batch[:, 1], dtype=torch.long, device=device)
 
-        x = torch.tensor(batch["Image"], dtype=torch.long, device=device)
-        y = torch.tensor(batch["Truth"], dtype=torch.long, device=device)
+        x = torch.tensor(batch["image"], dtype=torch.long, device=device)
+        y = torch.tensor(batch["truth"]["encoded"], dtype=torch.long, device=device)
 
         # Shift tgt input by 1 for prediction
         y_input = y[:, :-1]
@@ -71,8 +71,8 @@ def validation_loop(model, loss_fn, dataloader, device):
             # x = torch.tensor(batch[:, 0], dtype=torch.long, device=device)
             # y = torch.tensor(batch[:, 1], dtype=torch.long, device=device)
 
-            x = torch.tensor(batch["Image"], dtype=torch.long, device=device)
-            y = torch.tensor(batch["Truth"], dtype=torch.long, device=device)
+            x = torch.tensor(batch["image"], dtype=torch.long, device=device)
+            y = torch.tensor(batch["truth"]["encoded"], dtype=torch.long, device=device)
 
             # Shift tgt input by 1 for prediction
             y_input = y[:, :-1]
