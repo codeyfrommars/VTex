@@ -146,6 +146,7 @@ class CrohmeDataset(Dataset):
         # Remove alpha channel
         image = image.convert("RGB").convert('L')
         #image = image.resize((width,height))
+        
 
         if self.crop:
             # Image needs to be inverted because the bounding box cuts off black pixels,
