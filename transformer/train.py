@@ -6,19 +6,23 @@ from dataset import CrohmeDataset, START, PAD, collate_batch
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import multiprocessing
+from transformer_vtex import Transformer
 
 gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
 tokensfile = "./transformer/data/tokens.tsv"
 root = "./transformer/data/train/"
 
-imgWidth = 256
-imgHeight = 256
+trg_vocab_size = 101
+trg_pad_idx = 0 # What index in the dictory is the pad character, 2 is EOS character
+max_trg_length = 100
+img_height = 256
+img_width = 256
 
 transformers = transforms.Compose(
     [
         # Resize so all images have the same size
-        transforms.Resize((imgWidth, imgHeight)),
+        transforms.Resize((img_width, img_height)),
         transforms.ToTensor(),
         # normalize
         transforms.Normalize([0.5], [0.5])
@@ -42,13 +46,9 @@ def train_loop(model, opt, loss_fn, dataloader, device):
         y_input = y[:, :-1]
         y_expected = y[:, 1:]
 
-        # Get mask to mask tgt input
-        sequence_length = y_input.size(1)
-        # TODO: y_input or size?
-        tgt_mask = model._make_trg_mask(y_input).to(device)
 
         # Training with y_input and tg_mask
-        pred = model(x, y_input, tgt_mask)
+        pred = model(x, y_input)
 
         # Premute pred to have batch size first
         pred = pred.permute(1,2,0)
@@ -78,13 +78,9 @@ def validation_loop(model, loss_fn, dataloader, device):
             y_input = y[:, :-1]
             y_expected = y[:, 1:]
 
-            # Get mask to mask tgt input
-            sequence_length = y_input.size(1)
-            # TODO: y_input or size?
-            tgt_mask = model._make_trg_mask(y_input).to(device)
 
-            # Training with y_input and tg_mask
-            pred = model(x, y_input, tgt_mask)
+            # Training with y_input
+            pred = model(x, y_input)
 
             # Premute pred to have batch size first
             pred = pred.permute(1,2,0)
@@ -176,91 +172,33 @@ def train(model, device):
     #train_loss_list, validation_loss_list = train.fit(model, opt, loss_fn, train_dataloader, val_dataloader, 10, device)
     train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
 
-    # # Here we test some examples to observe how the model predicts
-    # examples = [
-    #     torch.tensor([[2, 0, 0, 0, 0, 0, 0, 0, 0, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 1, 1, 1, 1, 1, 1, 1, 1, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 1, 0, 1, 0, 1, 0, 1, 0, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 0, 1, 0, 1, 0, 1, 0, 1, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 0, 1, 3]], dtype=torch.long, device=device)
-    # ]
-
-    # for idx, example in enumerate(examples):
-    #     result = train.predict(model, device, example)
-    #     print(f"Example {idx}")
-    #     print(f"Input: {example.view(-1).tolist()[1:-1]}")
-    #     print(f"Continuation: {result[1:-1]}")
-    #     print()
 
 
 
-    
-# def generate_random_data(n):
-#     SOS_token = np.array([2])
-#     EOS_token = np.array([3])
-#     length = 8
 
-#     data = []
+if __name__ == "__main__":
+    """
+    example code to verify functionality of Transformer
+    """
 
-#     # 1,1,1,1,1,1 -> 1,1,1,1,1
-#     for i in range(n // 3):
-#         X = np.concatenate((SOS_token, np.ones(length), EOS_token))
-#         y = np.concatenate((SOS_token, np.ones(length), EOS_token))
-#         data.append([X, y])
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-#     # 0,0,0,0 -> 0,0,0,0
-#     for i in range(n // 3):
-#         X = np.concatenate((SOS_token, np.zeros(length), EOS_token))
-#         y = np.concatenate((SOS_token, np.zeros(length), EOS_token))
-#         data.append([X, y])
+    # new src [2, 1, 1000, 1000]
+    src1 = torch.rand(1000, 1000).unsqueeze(0).to(device)
+    src2 = torch.rand(1000, 1000).unsqueeze(0).to(device)
+    src = torch.stack((src1, src2), dim=0)
 
-#     # 1,0,1,0 -> 1,0,1,0,1
-#     for i in range(n // 3):
-#         X = np.zeros(length)
-#         start = random.randint(0, 1)
-
-#         X[start::2] = 1
-
-#         y = np.zeros(length)
-#         if X[-1] == 0:
-#             y[::2] = 1
-#         else:
-#             y[1::2] = 1
-
-#         X = np.concatenate((SOS_token, X, EOS_token))
-#         y = np.concatenate((SOS_token, y, EOS_token))
-
-#         data.append([X, y])
-
-#     np.random.shuffle(data)
-
-#     return data
+    trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
 
 
-# def batchify_data(data, batch_size=16, padding=False, padding_token=-1):
-#     batches = []
-#     for idx in range(0, len(data), batch_size):
-#         # We make sure we dont get the last bit if its not batch_size size
-#         if idx + batch_size < len(data):
-#             # Here you would need to get the max length of the batch,
-#             # and normalize the length with the PAD token.
-#             if padding:
-#                 max_batch_length = 0
+    model = Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, img_height, img_width).to(device)
 
-#                 # Get longest sentence in batch
-#                 for seq in data[idx : idx + batch_size]:
-#                     if len(seq) > max_batch_length:
-#                         max_batch_length = len(seq)
+    #out = model(src, trg[:, :-1])
+    #print(out.shape)
 
-#                 # Append X padding tokens until it reaches the max length
-#                 for seq_idx in range(batch_size):
-#                     remaining_length = max_batch_length - len(data[idx + seq_idx])
-#                     data[idx + seq_idx] += [padding_token] * remaining_length
+    train(model, device)
 
-#             batches.append(np.array(data[idx : idx + batch_size]).astype(np.int64))
 
-#     print(f"{len(batches)} batches of size {batch_size}")
 
-#     return batches
+
 

@@ -105,11 +105,11 @@ if __name__ == "__main__":
 
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
 
-    trg_vocab_size = 10
+    trg_vocab_size = 101
     trg_pad_idx = 0 # What index in the dictory is the pad character, 2 is EOS character
     max_trg_length = 100
-    img_height = 1000
-    img_width = 1000
+    img_height = 256
+    img_width = 256
 
     model = Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, img_height, img_width).to(device)
 
