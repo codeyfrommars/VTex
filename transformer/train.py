@@ -6,6 +6,7 @@ from dataset import CrohmeDataset, START, PAD, collate_batch
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import multiprocessing
+import transformer_vtex
 
 gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
@@ -14,6 +15,8 @@ root = "./transformer/data/train/"
 
 imgWidth = 256
 imgHeight = 256
+
+SoftMax = nn.Softmax(dim=2)
 
 transformers = transforms.Compose(
     [
@@ -35,8 +38,9 @@ def train_loop(model, opt, loss_fn, dataloader, device):
         # x = torch.tensor(batch[:, 0], dtype=torch.long, device=device)
         # y = torch.tensor(batch[:, 1], dtype=torch.long, device=device)
 
-        x = torch.tensor(batch["image"], dtype=torch.long, device=device)
-        y = torch.tensor(batch["truth"]["encoded"], dtype=torch.long, device=device)
+        x = torch.tensor(batch["image"], device=device)
+        y = torch.tensor(batch["truth"]["encoded"], device=device)
+        y[y == -1] = trg_pad_idx
 
         # Shift tgt input by 1 for prediction
         y_input = y[:, :-1]
@@ -48,10 +52,11 @@ def train_loop(model, opt, loss_fn, dataloader, device):
         tgt_mask = model._make_trg_mask(y_input).to(device)
 
         # Training with y_input and tg_mask
-        pred = model(x, y_input, tgt_mask)
+        pred = model(x, y_input)
 
-        # Premute pred to have batch size first
-        pred = pred.permute(1,2,0)
+        # Softmax
+        pred = SoftMax(pred) # TODO: remove softmax layer and add it to the model
+        pred = pred.permute((0,2,1))
         loss = loss_fn(pred, y_expected)
 
         opt.zero_grad()
@@ -71,8 +76,10 @@ def validation_loop(model, loss_fn, dataloader, device):
             # x = torch.tensor(batch[:, 0], dtype=torch.long, device=device)
             # y = torch.tensor(batch[:, 1], dtype=torch.long, device=device)
 
-            x = torch.tensor(batch["image"], dtype=torch.long, device=device)
-            y = torch.tensor(batch["truth"]["encoded"], dtype=torch.long, device=device)
+            x = torch.tensor(batch["image"], device=device)
+            y = torch.tensor(batch["truth"]["encoded"], device=device)
+            y[y == -1] = trg_pad_idx
+
 
             # Shift tgt input by 1 for prediction
             y_input = y[:, :-1]
@@ -83,11 +90,11 @@ def validation_loop(model, loss_fn, dataloader, device):
             # TODO: y_input or size?
             tgt_mask = model._make_trg_mask(y_input).to(device)
 
-            # Training with y_input and tg_mask
-            pred = model(x, y_input, tgt_mask)
-
-            # Premute pred to have batch size first
-            pred = pred.permute(1,2,0)
+            # Training with y_input
+            pred = model(x, y_input)
+            pred = SoftMax(pred) # TODO: remove softmax layer and add it to the model
+            pred = pred.permute((0,2,1))
+            
             loss = loss_fn(pred, y_expected)
             total_loss += loss.detach().item()
 
@@ -124,7 +131,7 @@ def predict(model, device, input_sequence, max_length=15, SOS_token=2, EOS_token
         # Get source mask
         tgt_mask = model.get_tgt_mask(y_input.size(1)).to(device)
         
-        pred = model(input_sequence, y_input, tgt_mask)
+        pred = model(input_sequence, y_input)
         
         next_item = pred.topk(1)[1].view(-1)[-1].item() # num with highest probability
         next_item = torch.tensor([[next_item]], device=device)
@@ -167,100 +174,25 @@ def train(model, device):
 
     opt = torch.optim.SGD(model.parameters(), lr=0.01)
     loss_fn = nn.CrossEntropyLoss()
-    # train_data = train.generate_random_data(9000)
-    # val_data = train.generate_random_data(3000)
-
-    # train_dataloader = train.batchify_data(train_data)
-    # val_dataloader = train.batchify_data(val_data)
-
-    #train_loss_list, validation_loss_list = train.fit(model, opt, loss_fn, train_dataloader, val_dataloader, 10, device)
     train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
 
-    # # Here we test some examples to observe how the model predicts
-    # examples = [
-    #     torch.tensor([[2, 0, 0, 0, 0, 0, 0, 0, 0, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 1, 1, 1, 1, 1, 1, 1, 1, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 1, 0, 1, 0, 1, 0, 1, 0, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 0, 1, 0, 1, 0, 1, 0, 1, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 3]], dtype=torch.long, device=device),
-    #     torch.tensor([[2, 0, 1, 3]], dtype=torch.long, device=device)
-    # ]
+if __name__ == "__main__":
+    """
+    example code to verify functionality of Transformer
+    """
 
-    # for idx, example in enumerate(examples):
-    #     result = train.predict(model, device, example)
-    #     print(f"Example {idx}")
-    #     print(f"Input: {example.view(-1).tolist()[1:-1]}")
-    #     print(f"Continuation: {result[1:-1]}")
-    #     print()
+    device = torch.device("cpu" if torch.backends.mps.is_available() else "cpu")
 
+    # Create a Crohme Dataset to get the <EOS>
+    train_dataset = CrohmeDataset(gt_train, tokensfile, root=root, crop=False)
+    trg_pad_idx = train_dataset.token_to_id[PAD]
+    trg_vocab_size =  len(train_dataset.token_to_id)
+    max_trg_length = 100
 
+    # new src [2, 1, 1000, 1000]
+    src1 = torch.rand(imgWidth, imgHeight).unsqueeze(0).to(device)
+    src2 = torch.rand(imgWidth, imgHeight).unsqueeze(0).to(device)
 
-    
-# def generate_random_data(n):
-#     SOS_token = np.array([2])
-#     EOS_token = np.array([3])
-#     length = 8
-
-#     data = []
-
-#     # 1,1,1,1,1,1 -> 1,1,1,1,1
-#     for i in range(n // 3):
-#         X = np.concatenate((SOS_token, np.ones(length), EOS_token))
-#         y = np.concatenate((SOS_token, np.ones(length), EOS_token))
-#         data.append([X, y])
-
-#     # 0,0,0,0 -> 0,0,0,0
-#     for i in range(n // 3):
-#         X = np.concatenate((SOS_token, np.zeros(length), EOS_token))
-#         y = np.concatenate((SOS_token, np.zeros(length), EOS_token))
-#         data.append([X, y])
-
-#     # 1,0,1,0 -> 1,0,1,0,1
-#     for i in range(n // 3):
-#         X = np.zeros(length)
-#         start = random.randint(0, 1)
-
-#         X[start::2] = 1
-
-#         y = np.zeros(length)
-#         if X[-1] == 0:
-#             y[::2] = 1
-#         else:
-#             y[1::2] = 1
-
-#         X = np.concatenate((SOS_token, X, EOS_token))
-#         y = np.concatenate((SOS_token, y, EOS_token))
-
-#         data.append([X, y])
-
-#     np.random.shuffle(data)
-
-#     return data
-
-
-# def batchify_data(data, batch_size=16, padding=False, padding_token=-1):
-#     batches = []
-#     for idx in range(0, len(data), batch_size):
-#         # We make sure we dont get the last bit if its not batch_size size
-#         if idx + batch_size < len(data):
-#             # Here you would need to get the max length of the batch,
-#             # and normalize the length with the PAD token.
-#             if padding:
-#                 max_batch_length = 0
-
-#                 # Get longest sentence in batch
-#                 for seq in data[idx : idx + batch_size]:
-#                     if len(seq) > max_batch_length:
-#                         max_batch_length = len(seq)
-
-#                 # Append X padding tokens until it reaches the max length
-#                 for seq_idx in range(batch_size):
-#                     remaining_length = max_batch_length - len(data[idx + seq_idx])
-#                     data[idx + seq_idx] += [padding_token] * remaining_length
-
-#             batches.append(np.array(data[idx : idx + batch_size]).astype(np.int64))
-
-#     print(f"{len(batches)} batches of size {batch_size}")
-
-#     return batches
+    model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, imgHeight, imgWidth).to(device)
+    train(model, device)
 

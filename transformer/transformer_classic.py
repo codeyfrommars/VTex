@@ -85,7 +85,7 @@ if __name__ == "__main__":
     example code to verify functionality of Transformer
     """
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
     src = torch.tensor([[1,5,6,4,3,4,7,2,0],[1,5,3,6,7,1,9,9,2]]).to(device)
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)

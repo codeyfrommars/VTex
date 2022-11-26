@@ -105,8 +105,8 @@ if __name__ == "__main__":
 
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
 
-    trg_vocab_size = 10
-    trg_pad_idx = 0 # What index in the dictory is the pad character, 2 is EOS character
+    trg_vocab_size = 10 # Latex character by character
+    trg_pad_idx = 0 # What index in the dictory is the pad character
     max_trg_length = 100
     img_height = 1000
     img_width = 1000
