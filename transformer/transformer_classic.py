@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import train
 
 from encoder.encoder_classic import Encoder
 from decoder.decoder import Decoder
@@ -104,3 +105,5 @@ if __name__ == "__main__":
 
     out = model(src, trg[:, :-1])
     print(out.shape)
+
+    train.train(model, device)

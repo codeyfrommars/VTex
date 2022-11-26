@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import train
 
 from encoder.encoder import Encoder
 from decoder.decoder import Decoder
@@ -115,4 +116,4 @@ if __name__ == "__main__":
     out = model(src, trg[:, :-1])
     print(out.shape)
 
-    #train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_dataloader, val_dataloader, 10)
+    train(model, device)
