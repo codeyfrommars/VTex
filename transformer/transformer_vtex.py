@@ -99,8 +99,8 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # new src [2, 1, 1000, 1000]
-    src1 = torch.rand(1000, 1000).unsqueeze(0).to(device)
-    src2 = torch.rand(1000, 1000).unsqueeze(0).to(device)
+    src1 = torch.rand(256, 256).unsqueeze(0).to(device)
+    src2 = torch.rand(256, 256).unsqueeze(0).to(device)
     src = torch.stack((src1, src2), dim=0)
 
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
@@ -108,8 +108,8 @@ if __name__ == "__main__":
     trg_vocab_size = 10 # Latex character by character
     trg_pad_idx = 0 # What index in the dictory is the pad character
     max_trg_length = 100
-    img_height = 1000
-    img_width = 1000
+    img_height = 256
+    img_width = 256
 
     model = Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, img_height, img_width).to(device)
 

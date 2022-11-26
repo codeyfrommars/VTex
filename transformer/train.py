@@ -12,6 +12,7 @@ gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
 tokensfile = "./transformer/data/tokens.tsv"
 root = "./transformer/data/train/"
+checkpoint_path = "./checkpoints"
 
 imgWidth = 256
 imgHeight = 256
@@ -104,7 +105,16 @@ def validation_loop(model, loss_fn, dataloader, device):
 def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     # Used for plotting later on
     train_loss_list, validation_loss_list = [], []
-    for epoch in range(epochs):
+
+    # Load checkpoint
+    checkpoint = torch.load(checkpoint_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    opt.load_state_dict(checkpoint['optimizer_state_dict'])
+    start_epoch = checkpoint['epoch']
+    train_loss_list = checkpoint['train_loss_list']
+    validation_loss_list = checkpoint['validation_loss_list']
+
+    for epoch in range(start_epoch, epochs):
         print("-"*25, f"Epoch {epoch + 1}","-"*25)
         
         train_loss = train_loop(model, opt, loss_fn, train_dataloader, device)
@@ -116,6 +126,15 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         print(f"Training loss: {train_loss:.4f}")
         print(f"Validation loss: {validation_loss:.4f}")
         print()
+
+        # Save checkpoint
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': opt.state_dict(),
+            'training_loss_list': train_loss_list,
+            'validation_loss_list': validation_loss_list,
+            }, checkpoint_path)
     
     return train_loss_list, validation_loss_list
 
@@ -189,10 +208,7 @@ if __name__ == "__main__":
     trg_vocab_size =  len(train_dataset.token_to_id)
     max_trg_length = 100
 
-    # new src [2, 1, 1000, 1000]
-    src1 = torch.rand(imgWidth, imgHeight).unsqueeze(0).to(device)
-    src2 = torch.rand(imgWidth, imgHeight).unsqueeze(0).to(device)
-
+    # Initialize model
     model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, imgHeight, imgWidth).to(device)
     train(model, device)
 
