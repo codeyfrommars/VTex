@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 import multiprocessing
 import transformer_vtex
+from datetime import datetime
 
 gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
@@ -47,11 +48,6 @@ def train_loop(model, opt, loss_fn, dataloader, device):
         y_input = y[:, :-1]
         y_expected = y[:, 1:]
 
-        # Get mask to mask tgt input
-        sequence_length = y_input.size(1)
-        # TODO: y_input or size?
-        tgt_mask = model._make_trg_mask(y_input).to(device)
-
         # Training with y_input and tg_mask
         pred = model(x, y_input)
 
@@ -86,11 +82,6 @@ def validation_loop(model, loss_fn, dataloader, device):
             y_input = y[:, :-1]
             y_expected = y[:, 1:]
 
-            # Get mask to mask tgt input
-            sequence_length = y_input.size(1)
-            # TODO: y_input or size?
-            tgt_mask = model._make_trg_mask(y_input).to(device)
-
             # Training with y_input
             pred = model(x, y_input)
             pred = SoftMax(pred) # TODO: remove softmax layer and add it to the model
@@ -106,16 +97,22 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     # Used for plotting later on
     train_loss_list, validation_loss_list = [], []
 
-    # Load checkpoint
-    checkpoint = torch.load(checkpoint_path)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    opt.load_state_dict(checkpoint['optimizer_state_dict'])
-    start_epoch = checkpoint['epoch']
-    train_loss_list = checkpoint['train_loss_list']
-    validation_loss_list = checkpoint['validation_loss_list']
+    start_epoch = 0
 
+    # Load checkpoint
+    # checkpoint = torch.load(checkpoint_path)
+    # model.load_state_dict(checkpoint['model_state_dict'])
+    # opt.load_state_dict(checkpoint['optimizer_state_dict'])
+    # start_epoch = checkpoint['epoch'] + 1
+
+
+    #train_loss_list = checkpoint['train_loss_list']
+    #validation_loss_list = checkpoint['validation_loss_list']
+
+    
     for epoch in range(start_epoch, epochs):
         print("-"*25, f"Epoch {epoch + 1}","-"*25)
+        start = datetime.now()
         
         train_loss = train_loop(model, opt, loss_fn, train_dataloader, device)
         train_loss_list += [train_loss]
@@ -132,9 +129,12 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
-            'training_loss_list': train_loss_list,
-            'validation_loss_list': validation_loss_list,
+            #'training_loss_list': train_loss_list,
+            #'validation_loss_list': validation_loss_list,
             }, checkpoint_path)
+
+        end = datetime.now()
+        print("Elapsed Time: ", (end-start).total_seconds(), "s")
     
     return train_loss_list, validation_loss_list
 
@@ -148,7 +148,7 @@ def predict(model, device, input_sequence, max_length=15, SOS_token=2, EOS_token
 
     for _ in range(max_length):
         # Get source mask
-        tgt_mask = model.get_tgt_mask(y_input.size(1)).to(device)
+        #tgt_mask = model.get_tgt_mask(y_input.size(1)).to(device)
         
         pred = model(input_sequence, y_input)
         
@@ -171,7 +171,7 @@ def train(model, device):
     )
     train_data_loader = DataLoader(
         train_dataset,
-        batch_size=4,
+        batch_size=32,
         shuffle=True,
         num_workers=multiprocessing.cpu_count(),
         collate_fn=collate_batch,
@@ -183,7 +183,7 @@ def train(model, device):
     )
     validation_data_loader = DataLoader(
         validation_dataset,
-        batch_size=4,
+        batch_size=32,
         shuffle=True,
         num_workers=multiprocessing.cpu_count(),
         collate_fn=collate_batch,
@@ -193,14 +193,15 @@ def train(model, device):
 
     opt = torch.optim.SGD(model.parameters(), lr=0.01)
     loss_fn = nn.CrossEntropyLoss()
-    train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
+    #train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
+    fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
 
 if __name__ == "__main__":
     """
     example code to verify functionality of Transformer
     """
 
-    device = torch.device("cpu" if torch.backends.mps.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Create a Crohme Dataset to get the <EOS>
     train_dataset = CrohmeDataset(gt_train, tokensfile, root=root, crop=False)
@@ -209,6 +210,6 @@ if __name__ == "__main__":
     max_trg_length = 100
 
     # Initialize model
-    model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, imgHeight, imgWidth).to(device)
+    model = nn.DataParallel(transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, imgHeight, imgWidth)).to(device)
     train(model, device)
 
