@@ -8,6 +8,7 @@ from torchvision import transforms
 import multiprocessing
 import transformer_vtex
 from datetime import datetime
+import os
 
 gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
@@ -17,8 +18,6 @@ checkpoint_path = "./checkpoints"
 
 imgWidth = 256
 imgHeight = 256
-
-SoftMax = nn.Softmax(dim=2)
 
 transformers = transforms.Compose(
     [
@@ -49,12 +48,12 @@ def train_loop(model, opt, loss_fn, dataloader, device):
         y_expected = y[:, 1:]
 
         # Training with y_input and tg_mask
-        pred = model(x, y_input)
-
-        # Softmax
-        pred = SoftMax(pred) # TODO: remove softmax layer and add it to the model
-        pred = pred.permute((0,2,1))
-        loss = loss_fn(pred, y_expected)
+        pred = model(x, y_input) # [batch_size, seq_len, classes]
+        
+        # flatten tensors for cross-entropy loss
+        pred_flat = pred.contiguous().view(-1, pred.shape[-1]) # [(batch_size seq_len), classes]
+        y_expected_flat = y_expected.contiguous().view(-1) # [(batch_size seq_len)]
+        loss = loss_fn(pred_flat, y_expected_flat)
 
         opt.zero_grad()
         loss.backward()
@@ -84,10 +83,12 @@ def validation_loop(model, loss_fn, dataloader, device):
 
             # Training with y_input
             pred = model(x, y_input)
-            pred = SoftMax(pred) # TODO: remove softmax layer and add it to the model
-            pred = pred.permute((0,2,1))
+
+            # flatten tensors for cross-entropy loss
+            pred_flat = pred.contiguous().view(-1, pred.shape[-1]) # [(batch_size seq_len), classes]
+            y_expected_flat = y_expected.contiguous().view(-1) # [(batch_size seq_len)]
+            loss = loss_fn(pred_flat, y_expected_flat)
             
-            loss = loss_fn(pred, y_expected)
             total_loss += loss.detach().item()
 
     return total_loss / len(dataloader)
@@ -100,12 +101,12 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     start_epoch = 0
 
     # Load checkpoint
-    checkpoint = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
     opt.load_state_dict(checkpoint['optimizer_state_dict'])
     start_epoch = checkpoint['epoch'] + 1
 
-    model = nn.DataParallel(model) # Comment out if using only one GPU
+    # model = nn.DataParallel(model) # Comment out if using only one GPU
     
     for epoch in range(start_epoch, epochs):
         print("-"*25, f"Epoch {epoch + 1}","-"*25)
@@ -122,12 +123,15 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         print()
 
         # Save checkpoint
+        filename = "{prefix}{num:0>4}.pth".format(num=checkpoint["epoch"], prefix="checkpoint")
         torch.save({
             'epoch': epoch,
-            'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
-            #'model_state_dict': model.state_dict(),
+            # 'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
+            'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
-            }, checkpoint_path)
+            'train_loss': train_loss,
+            'validation_loss': validation_loss,
+            }, os.path.join(checkpoint_path, filename))
 
         end = datetime.now()
         print("Elapsed Time: ", (end-start).total_seconds(), "s")
@@ -190,7 +194,7 @@ def train(model, device):
     opt = torch.optim.SGD(model.parameters(), lr=0.01)
     loss_fn = nn.CrossEntropyLoss()
     #train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
-    fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
+    fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=11, device=device)
 
 if __name__ == "__main__":
     """
