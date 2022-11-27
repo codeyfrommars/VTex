@@ -123,7 +123,7 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         print()
 
         # Save checkpoint
-        filename = "{prefix}{num:0>4}.pth".format(num=checkpoint["epoch"], prefix="checkpoint")
+        # filename = "{prefix}{num:0>4}.pth".format(num=checkpoint["epoch"], prefix="checkpoint")
         torch.save({
             'epoch': epoch,
             # 'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
@@ -131,7 +131,7 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
             'optimizer_state_dict': opt.state_dict(),
             'train_loss': train_loss,
             'validation_loss': validation_loss,
-            }, os.path.join(checkpoint_path, filename))
+            }, checkpoint_path)
 
         end = datetime.now()
         print("Elapsed Time: ", (end-start).total_seconds(), "s")
