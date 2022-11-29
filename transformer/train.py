@@ -156,10 +156,10 @@ def train(model, device):
 
     print("Loaded Validation Dataset")
 
-    opt = torch.optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=1e-04)
+    opt = torch.optim.Adadelta(model.parameters(), lr=1.0, weight_decay=1e-04)
     loss_fn = nn.CrossEntropyLoss()
     #train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
-    fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=11, device=device)
+    fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=5000, device=device)
 
 if __name__ == "__main__":
     """
