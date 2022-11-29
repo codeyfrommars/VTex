@@ -145,7 +145,6 @@ class CrohmeDataset(Dataset):
         image = Image.open(item["path"])
         # Remove alpha channel
         image = image.convert("RGB").convert('L')
-        #image = image.resize((width,height))
         
 
         if self.crop:

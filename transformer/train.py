@@ -8,7 +8,6 @@ from torchvision import transforms
 import multiprocessing
 import transformer_vtex
 from datetime import datetime
-import os
 
 gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
@@ -29,16 +28,11 @@ transformers = transforms.Compose(
     ]
 )
 
-
-
 def train_loop(model, opt, loss_fn, dataloader, device):
     model.train()
     total_loss = 0
 
     for batch in dataloader:
-        # x = torch.tensor(batch[:, 0], dtype=torch.long, device=device)
-        # y = torch.tensor(batch[:, 1], dtype=torch.long, device=device)
-
         x = torch.tensor(batch["image"], device=device)
         y = torch.tensor(batch["truth"]["encoded"], device=device)
         y[y == -1] = trg_pad_idx
@@ -69,9 +63,6 @@ def validation_loop(model, loss_fn, dataloader, device):
 
     with torch.no_grad():
         for batch in dataloader:
-            # x = torch.tensor(batch[:, 0], dtype=torch.long, device=device)
-            # y = torch.tensor(batch[:, 1], dtype=torch.long, device=device)
-
             x = torch.tensor(batch["image"], device=device)
             y = torch.tensor(batch["truth"]["encoded"], device=device)
             y[y == -1] = trg_pad_idx
@@ -137,32 +128,6 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         print("Elapsed Time: ", (end-start).total_seconds(), "s")
     
     return train_loss_list, validation_loss_list
-
-
-def predict(model, device, input_sequence, max_length=15, SOS_token=2, EOS_token=3):
-    model.eval()
-    
-    y_input = torch.tensor([[SOS_token]], dtype=torch.long, device=device)
-
-    num_tokens = len(input_sequence[0])
-
-    for _ in range(max_length):
-        # Get source mask
-        #tgt_mask = model.get_tgt_mask(y_input.size(1)).to(device)
-        
-        pred = model(input_sequence, y_input)
-        
-        next_item = pred.topk(1)[1].view(-1)[-1].item() # num with highest probability
-        next_item = torch.tensor([[next_item]], device=device)
-
-        # Concatenate previous input with predicted best word
-        y_input = torch.cat((y_input, next_item), dim=1)
-
-        # Stop if model predicts end of sentence
-        if next_item.view(-1).item() == EOS_token:
-            break
-
-    return y_input.view(-1).tolist()
   
   
 def train(model, device):
@@ -191,14 +156,14 @@ def train(model, device):
 
     print("Loaded Validation Dataset")
 
-    opt = torch.optim.SGD(model.parameters(), lr=0.01)
+    opt = torch.optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=1e-04)
     loss_fn = nn.CrossEntropyLoss()
     #train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
     fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=11, device=device)
 
 if __name__ == "__main__":
     """
-    example code to verify functionality of Transformer
+    code to train transformer
     """
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

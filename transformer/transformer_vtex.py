@@ -115,5 +115,3 @@ if __name__ == "__main__":
 
     out = model(src, trg[:, :-1])
     print(out.shape)
-
-    train(model, device)
