@@ -91,10 +91,6 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     # Used for plotting later on
     train_loss_list, validation_loss_list, epoch_list = [], [], []
 
-    plt.title("Training Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-
     start_epoch = 0
 
     # Load checkpoint
@@ -134,15 +130,18 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         end = datetime.now()
         print("Elapsed Time: ", (end-start).total_seconds(), "s")
         
-        #plt.figure(figsize=(15, 15))
+        plt.figure(figsize=(15, 15))
+        plt.title("Training Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
         plt.plot(epoch_list[-20:], train_loss_list[-20:], color ="green", label="Training Loss", marker='o', markerfacecolor='green')
         plt.plot(epoch_list[-20:], validation_loss_list[-20:], color ="red", linewidth=1.0, linestyle='--', label="Validation Loss", marker='o', markerfacecolor='red')
         #plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
 
         plt.xticks(ticks=epoch_list[-20:])
-        if epoch == start_epoch:
-            plt.legend()
-        #plt.legend()
+        # if epoch == start_epoch:
+        #     plt.legend()
+        plt.legend()
         #plt.show()
         plt.savefig('./progress/progress_epoch_'+str(epoch+1)+'.png')
     
