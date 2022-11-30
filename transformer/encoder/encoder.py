@@ -9,9 +9,10 @@ class Encoder(nn.Module):
     """
     Encoder for VTex transformer. Input is an image. Output goes to decoder.
     """
-    def __init__(self, growth_rate, block_depth, compression, dropout, height, width, dim_model):
+    def __init__(self, growth_rate, block_depth, compression, dropout, height, width, dim_model, device):
         super(Encoder, self).__init__()
 
+        self.device = device
         # CNN to extract image features
         self.cnn = DenseNet(growth_rate, block_depth, compression, dropout)
 

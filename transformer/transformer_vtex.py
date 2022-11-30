@@ -33,9 +33,11 @@ class Transformer(nn.Module):
         self.trg_pad_idx = trg_pad_idx
         self.height = img_height
         self.width = img_width
+        # self.trg_vocab_size = trg_vocab_size
+        # self.max_trg_length = max_trg_length
         
-        self.encoder = Encoder(growth_rate, block_depth, compression, dropout_enc, img_height, img_width, dim_model)
-        self.decoder = Decoder(num_layers, trg_vocab_size, dim_model, num_heads, dim_ff, dropout_dec, max_trg_length)
+        self.encoder = Encoder(growth_rate, block_depth, compression, dropout_enc, img_height, img_width, dim_model, device)
+        self.decoder = Decoder(num_layers, trg_vocab_size, dim_model, num_heads, dim_ff, dropout_dec, max_trg_length, device)
 
     def forward(self, src, trg):
         """
@@ -88,6 +90,18 @@ class Transformer(nn.Module):
         # mask [seq_len, seq_len]
         assert (mask.size() == (seq_len, seq_len)), "make_trg_mask incorrect"
         return mask == 0
+
+    def beam_search(self, src, pad_idx, sos_idx, eos_idx, beam_size=10):
+        """
+        run beam search for a given image
+        src [batch=1, channels=1, height, width]
+        Returns an output index sequence that includes SOS and EOS
+        """
+        enc_out = self.encoder(src)
+        return self.decoder.beam_search(enc_out, pad_idx, sos_idx, eos_idx, beam_size)
+
+
+
 
 
 
