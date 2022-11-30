@@ -8,10 +8,12 @@ from torchvision import transforms
 import multiprocessing
 import transformer_vtex
 import matplotlib.pyplot as plt
+import editdistance
 
-gt_test = "./transformer/data/groundtruth_2013.tsv"
+# Update these to use different test dataset
+gt_test = "./transformer/data/groundtruth_2016.tsv"
 tokensfile = "./transformer/data/tokens.tsv"
-root = "./transformer/data/test/2013/"
+root = "./transformer/data/test/2016/"
 checkpoint_path = "./checkpoints"
 
 imgWidth = 256
@@ -29,7 +31,26 @@ transformers = transforms.Compose(
     ]
 )
 
+class ExpRate:
+    def __init__(self):
+        self.total = 0
+        self.rec = 0
+    
+    def update(self, prediction, expected):
+        dist = editdistance.eval(prediction, expected)
+        if (dist == 0):
+            self.rec += 1
+        self.total += 1
+    
+    def compute(self) -> float:
+        return self.rec / self.total
+
+    
+
 def greedy(model, device):
+    """
+    Use greedy method to predict sentence
+    """
     test_dataset = CrohmeDataset(
         gt_test, tokensfile, root=root, crop=False, transform=transformers
     )
@@ -74,34 +95,16 @@ def greedy(model, device):
             for i in output[0]:
                 output_text = output_text + test_dataset.id_to_token[i.item()]
 
-
-def test(model, device):
-    # load test dataset
-    test_dataset = CrohmeDataset(
-        gt_test, tokensfile, root=root, crop=False, transform=transformers
-    )
-    test_data_loader = DataLoader(
-        test_dataset,
-        batch_size=32,
-        shuffle=True,
-        num_workers=multiprocessing.cpu_count(),
-        collate_fn=collate_batch,
-    )
-    print("Loaded Test Dataset")
-
-    # load checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    print("Loaded Checkpoint")
-
-    # predict(model, test_data_loader, device)
-    # TODO: implement some scoring system
-
-
 def beam_search(model: transformer_vtex.Transformer, device):
+    """
+    Use beam search to predict sentence (preferred)
+    """
     test_dataset = CrohmeDataset(
         gt_test, tokensfile, root=root, crop=False, transform=transformers
     )
+    sos_idx = test_dataset.token_to_id[START]
+    eos_idx = test_dataset.token_to_id[END]
+    pad_idx = test_dataset.token_to_id[PAD]
 
     # load checkpoint
     checkpoint = torch.load(checkpoint_path, map_location=device)
@@ -111,14 +114,9 @@ def beam_search(model: transformer_vtex.Transformer, device):
     model.eval()
 
     for item in test_dataset:
-        # item = test_dataset[2]
         src = torch.tensor(item["image"], device=device)
         src = src.unsqueeze(dim=1)
         truth = item["truth"]
-
-        sos_idx = test_dataset.token_to_id[START]
-        eos_idx = test_dataset.token_to_id[END]
-        pad_idx = test_dataset.token_to_id[PAD]
 
         with torch.no_grad():
             output = model.beam_search(src, pad_idx, sos_idx, eos_idx, beam_size=10)
@@ -129,6 +127,48 @@ def beam_search(model: transformer_vtex.Transformer, device):
             for i in output:
                 output_text = output_text + test_dataset.id_to_token[i.item()]
             print ("Output text: " + output_text)
+
+def test(model, device, beam_size=10):
+    """
+    Perform beam search on test dataset and return the expression recognition rate
+    """
+    # load test dataset
+    test_dataset = CrohmeDataset(
+        gt_test, tokensfile, root=root, crop=False, transform=transformers
+    )
+    sos_idx = test_dataset.token_to_id[START]
+    eos_idx = test_dataset.token_to_id[END]
+    pad_idx = test_dataset.token_to_id[PAD]
+    print("Loaded Test Dataset")
+
+    # Create evaluation object
+    exprate = ExpRate()
+
+    # load checkpoint
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    print("Loaded Checkpoint")
+
+    model.eval()
+
+    for item in test_dataset:
+        src = torch.tensor(item["image"], device=device)
+        src = src.unsqueeze(dim=1)
+        truth = item["truth"]
+
+        with torch.no_grad():
+            output = model.beam_search(src, pad_idx, sos_idx, eos_idx, beam_size)
+
+            exprate.update(output.tolist(), truth["encoded"])
+
+            print ("Expected: " + str(truth))
+            print ("Output: " + str(output))
+
+    # Calculate score
+    return exprate.compute()
+
+
+
 
 if __name__ == "__main__":
     """
@@ -145,5 +185,5 @@ if __name__ == "__main__":
 
     # Initialize model
     model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, imgHeight, imgWidth).to(device)
-    # test(model, device)
-    beam_search(model, device)
+    exprate = test(model, device)
+    print("ExpRate: " + str(exprate * 100) + "%")
