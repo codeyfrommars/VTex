@@ -1,3 +1,5 @@
+# Our custom transformer for parsing images to LaTeX
+
 import torch
 import torch.nn as nn
 import train
@@ -20,12 +22,12 @@ class Transformer(nn.Module):
             growth_rate=24,
             block_depth=16,
             compression=0.5,
-            num_layers=6,
+            num_layers=3,
             num_heads=8,
-            dim_model=512,
-            dim_ff=2048,
+            dim_model=256,
+            dim_ff=1024,
             dropout_enc=0.2,
-            dropout_dec=0.1
+            dropout_dec=0.3
         ):
         super(Transformer, self).__init__()
         self.device = device
@@ -112,7 +114,7 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # new src [2, 1, 1000, 1000]
+    # new src [2, 1, 256, 256]
     src1 = torch.rand(256, 256).unsqueeze(0).to(device)
     src2 = torch.rand(256, 256).unsqueeze(0).to(device)
     src = torch.stack((src1, src2), dim=0)

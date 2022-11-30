@@ -1,3 +1,5 @@
+# Implementation of the transformer from Attention is All You Need
+
 import torch
 import torch.nn as nn
 import train
