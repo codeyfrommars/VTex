@@ -8,6 +8,8 @@ from torchvision import transforms
 import multiprocessing
 import transformer_vtex
 from datetime import datetime
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 
 gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
@@ -87,7 +89,7 @@ def validation_loop(model, loss_fn, dataloader, device):
 
 def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     # Used for plotting later on
-    train_loss_list, validation_loss_list = [], []
+    train_loss_list, validation_loss_list, epoch_list = [], [], []
 
     start_epoch = 0
 
@@ -97,12 +99,13 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     opt.load_state_dict(checkpoint['optimizer_state_dict'])
     start_epoch = checkpoint['epoch'] + 1
 
-    # model = nn.DataParallel(model) # Comment out if using only one GPU
+    model = nn.DataParallel(model) # Comment out if using only one GPU
     
     for epoch in range(start_epoch, epochs):
         print("-"*25, f"Epoch {epoch + 1}","-"*25)
         start = datetime.now()
-        
+        epoch_list += [epoch+1]
+
         train_loss = train_loop(model, opt, loss_fn, train_dataloader, device)
         train_loss_list += [train_loss]
         
@@ -117,8 +120,8 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         # filename = "{prefix}{num:0>4}.pth".format(num=checkpoint["epoch"], prefix="checkpoint")
         torch.save({
             'epoch': epoch,
-            # 'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
-            'model_state_dict': model.state_dict(),
+            'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
+            #'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
             'train_loss': train_loss,
             'validation_loss': validation_loss,
@@ -126,6 +129,21 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
 
         end = datetime.now()
         print("Elapsed Time: ", (end-start).total_seconds(), "s")
+        
+        plt.figure(figsize=(15, 15))
+        plt.title("Training Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.plot(epoch_list[-20:], train_loss_list[-20:], color ="green", label="Training Loss", marker='o', markerfacecolor='green')
+        plt.plot(epoch_list[-20:], validation_loss_list[-20:], color ="red", linewidth=1.0, linestyle='--', label="Validation Loss", marker='o', markerfacecolor='red')
+        #plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+
+        plt.xticks(ticks=epoch_list[-20:])
+        # if epoch == start_epoch:
+        #     plt.legend()
+        plt.legend()
+        #plt.show()
+        plt.savefig('./progress/progress_epoch_'+str(epoch+1)+'.png')
     
     return train_loss_list, validation_loss_list
   
