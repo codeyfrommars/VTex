@@ -34,16 +34,37 @@ transformers = transforms.Compose(
 class ExpRate:
     def __init__(self):
         self.total = 0
-        self.rec = 0
+        self.zero = 0
+        self.one = 0
+        self.five = 0
+        self.ten = 0
     
     def update(self, prediction, expected):
         dist = editdistance.eval(prediction, expected)
         if (dist == 0):
-            self.rec += 1
+            self.zero += 1
+            self.one += 1
+            self.five += 1
+            self.ten += 1
+        elif (dist <= 1):
+            self.one += 1
+            self.five += 1
+            self.ten += 1
+        elif (dist <= 5):
+            self.five += 1
+            self.ten += 1
+        elif (dist <= 10):
+            self.ten += 1
         self.total += 1
     
-    def compute(self) -> float:
-        return self.rec / self.total
+    def computeZero(self) -> float:
+        return self.zero / self.total
+    def computeOne(self) -> float:
+        return self.one / self.total
+    def computeFive(self) -> float:
+        return self.five / self.total
+    def computeTen(self) -> float:
+        return self.ten / self.total
 
     
 
@@ -121,12 +142,12 @@ def beam_search(model: transformer_vtex.Transformer, device):
         with torch.no_grad():
             output = model.beam_search(src, pad_idx, sos_idx, eos_idx, beam_size=10)
 
-            print ("Expected: " + str(truth))
-            print ("Output: " + str(output))
+            print ("Expected: " + str(truth["text"]))
+            # print ("Output: " + str(output))
             output_text = ""
             for i in output:
                 output_text = output_text + test_dataset.id_to_token[i.item()]
-            print ("Output text: " + output_text)
+            print ("Output:   " + output_text)
 
 def test(model, device, beam_size=10):
     """
@@ -161,11 +182,20 @@ def test(model, device, beam_size=10):
 
             exprate.update(output.tolist(), truth["encoded"])
 
-            print ("Expected: " + str(truth))
-            print ("Output: " + str(output))
+            print ("Expected: " + str(truth["text"]))
+            # print ("Output: " + str(output))
+            output_text = ""
+            for i in output:
+                if i.item() != sos_idx and i.item() != eos_idx:
+                    output_text = output_text + test_dataset.id_to_token[i.item()]
+            print ("Output:   " + output_text)
 
     # Calculate score
-    return exprate.compute()
+    print("0 error:  " + str(exprate.computeZero() * 100) + "%")
+    print("1 error:  " + str(exprate.computeOne() * 100) + "%")
+    print("<5 error: " + str(exprate.computeFive() * 100) + "%")
+    print("<10 error:" + str(exprate.computeTen() * 100) + "%")
+    
 
 
 
@@ -186,4 +216,3 @@ if __name__ == "__main__":
     # Initialize model
     model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, imgHeight, imgWidth).to(device)
     exprate = test(model, device)
-    print("ExpRate: " + str(exprate * 100) + "%")
