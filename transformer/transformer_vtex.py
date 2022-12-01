@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import train
+# import train
 
 from encoder.encoder import Encoder
 from decoder.decoder import Decoder
