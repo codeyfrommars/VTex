@@ -17,12 +17,12 @@ white_index = 0
 
 # The colours which will be used as ink for
 # the drawing purpose
-colors = [(255, 255, 255), (255, 0, 0), (0, 255, 0),
+colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0),
         (0, 0, 255), (0, 255, 255)]
 colorIndex = 0
 
 # Here is code for Canvas setup
-paintWindow = np.zeros((471, 636, 3))   
+paintWindow = np.zeros((471, 636, 3)) + 255 
 
 # For webcam input:
 cap = cv2.VideoCapture(0)
@@ -89,7 +89,7 @@ with mp_hands.Hands(
                     handLandmarks[16][1] < handLandmarks[14][1] and \
                     handLandmarks[20][1] < handLandmarks[18][1] and \
                     handLandmarks[8][1] < handLandmarks[6][1]:
-                        paintWindow = np.zeros((471, 636, 3))   
+                        paintWindow = np.zeros((471, 636, 3)) + 255  
                         wpoints = [deque(maxlen = 1024)]
                         white_index = 0
                         continue
