@@ -20,12 +20,12 @@ class Transformer(nn.Module):
             growth_rate=24,
             block_depth=16,
             compression=0.5,
-            num_layers=6,
+            num_layers=3,
             num_heads=8,
-            dim_model=512,
-            dim_ff=2048,
-            dropout_enc=0.2,
-            dropout_dec=0.1
+            dim_model=256,
+            dim_ff=1024,
+            dropout_enc=0.3,
+            dropout_dec=0.3
         ):
         super(Transformer, self).__init__()
         self.device = device
