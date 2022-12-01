@@ -95,10 +95,10 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     start_epoch = 0
 
     # Load checkpoint
-    # checkpoint = torch.load(checkpoint_path, map_location=device)
-    # model.load_state_dict(checkpoint['model_state_dict'])
-    # opt.load_state_dict(checkpoint['optimizer_state_dict'])
-    # start_epoch = checkpoint['epoch'] + 1
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    opt.load_state_dict(checkpoint['optimizer_state_dict'])
+    start_epoch = checkpoint['epoch'] + 1
 
     # Freeze the CNN params
     model.encoder.freezeCNN()
@@ -142,7 +142,7 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         plt.plot(epoch_list, validation_loss_list, color ="red", linewidth=1.0, linestyle='--', label="Validation Loss", marker='o', markerfacecolor='red')
         #plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
 
-        plt.xticks(ticks=epoch_list[-20:])
+        plt.xticks(ticks=epoch_list)
         # if epoch == start_epoch:
         #     plt.legend()
         plt.legend()
