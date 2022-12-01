@@ -95,10 +95,13 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     start_epoch = 0
 
     # Load checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    opt.load_state_dict(checkpoint['optimizer_state_dict'])
-    start_epoch = checkpoint['epoch'] + 1
+    # checkpoint = torch.load(checkpoint_path, map_location=device)
+    # model.load_state_dict(checkpoint['model_state_dict'])
+    # opt.load_state_dict(checkpoint['optimizer_state_dict'])
+    # start_epoch = checkpoint['epoch'] + 1
+
+    # Freeze the CNN params
+    model.encoder.freezeCNN()
 
     model = nn.DataParallel(model) # Comment out if using only one GPU
     
@@ -135,8 +138,8 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         plt.title("Training Loss")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.plot(epoch_list[-20:], train_loss_list[-20:], color ="green", label="Training Loss", marker='o', markerfacecolor='green')
-        plt.plot(epoch_list[-20:], validation_loss_list[-20:], color ="red", linewidth=1.0, linestyle='--', label="Validation Loss", marker='o', markerfacecolor='red')
+        plt.plot(epoch_list, train_loss_list, color ="green", label="Training Loss", marker='o', markerfacecolor='green')
+        plt.plot(epoch_list, validation_loss_list, color ="red", linewidth=1.0, linestyle='--', label="Validation Loss", marker='o', markerfacecolor='red')
         #plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
 
         plt.xticks(ticks=epoch_list[-20:])

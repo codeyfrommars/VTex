@@ -19,10 +19,11 @@ class Encoder(nn.Module):
         # self.cnn = DenseNet(growth_rate, block_depth, compression, dropout)
         densenet = models.densenet121(weights='DenseNet121_Weights.DEFAULT')
         # Lock the densenet params
-        for param in densenet.parameters():
-            param.requires_grad = False
+        # for param in densenet.parameters():
+        #     param.requires_grad = False
         cnn_out_features = densenet.classifier.in_features
         self.cnn = nn.Sequential(*list(densenet.features))
+        # self.freezeCNN()
         
 
         # 1x1 convolution to reshape CNN's output to transformer's d_model dimensions
@@ -66,4 +67,9 @@ class Encoder(nn.Module):
         # assert (features.size() == (batch_size, (height//16) * (width//16), self.dim_model)), "Encoder output incorrect shape"
 
         return features
+
+    def freezeCNN(self):
+        for param in self.cnn.parameters():
+            param.requires_grad = False
+
 
