@@ -114,7 +114,9 @@ if __name__ == "__main__":
 
     # new src [2, 1, 1000, 1000]
     src1 = torch.rand(256, 256).unsqueeze(0).to(device)
+    src1 = src1.repeat(3,1,1)
     src2 = torch.rand(256, 256).unsqueeze(0).to(device)
+    src2 = src2.repeat(3,1,1)
     src = torch.stack((src1, src2), dim=0)
 
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
