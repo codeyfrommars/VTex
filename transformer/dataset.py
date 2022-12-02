@@ -1,3 +1,5 @@
+# Thanks to https://github.com/jungomi/math-formula-recognition for extracting Crohme Dataset!
+
 import csv
 import os
 import torch

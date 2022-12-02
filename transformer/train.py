@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import random
 from dataset import CrohmeDataset, START, PAD, collate_batch
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -9,7 +8,6 @@ import multiprocessing
 import transformer_vtex
 from datetime import datetime
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
 
 gt_train = "./transformer/data/gt_split/train.tsv"
 gt_validation = "./transformer/data/gt_split/validation.tsv"
@@ -101,7 +99,7 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     start_epoch = checkpoint['epoch'] + 1
 
     # Freeze the CNN params
-    model.encoder.freezeCNN()
+    # model.encoder.freezeCNN()
 
     model = nn.DataParallel(model) # Comment out if using only one GPU
     
@@ -140,13 +138,9 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         plt.ylabel("Loss")
         plt.plot(epoch_list, train_loss_list, color ="green", label="Training Loss", marker='o', markerfacecolor='green')
         plt.plot(epoch_list, validation_loss_list, color ="red", linewidth=1.0, linestyle='--', label="Validation Loss", marker='o', markerfacecolor='red')
-        #plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
 
         plt.xticks(ticks=epoch_list)
-        # if epoch == start_epoch:
-        #     plt.legend()
         plt.legend()
-        #plt.show()
         plt.savefig('./progress/progress_epoch_'+str(epoch+1)+'.png')
     
     return train_loss_list, validation_loss_list
@@ -178,9 +172,8 @@ def train(model, device):
 
     print("Loaded Validation Dataset")
 
-    opt = torch.optim.Adadelta(model.parameters(), lr=1.0, weight_decay=1e-04)
+    opt = torch.optim.Adadelta(model.parameters(), lr=0.01, weight_decay=1e-04)
     loss_fn = nn.CrossEntropyLoss()
-    #train_loss_list, validation_loss_list = fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=10, device=device)
     fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=5000, device=device)
 
 if __name__ == "__main__":
