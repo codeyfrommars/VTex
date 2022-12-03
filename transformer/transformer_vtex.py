@@ -46,8 +46,6 @@ class Transformer(nn.Module):
         """
 
         # Create pad masks for transformer
-        # TODO: encoder-decoder pad mask
-        # enc_dec_mask = self.make_pad_mask()
         # trg_mask = self._make_pad_mask(trg, self.trg_pad_idx) * self._make_trg_mask(trg)
         trg_mask = self._make_trg_mask(trg)
 
@@ -95,9 +93,10 @@ class Transformer(nn.Module):
     def beam_search(self, src, pad_idx, sos_idx, eos_idx, beam_size=10):
         """
         run beam search for a given image
-        src [batch=1, channels=1, height, width]
+        src [batch=1, channels=1/3, height, width]
         Returns an output index sequence that includes SOS and EOS
         """
+        assert(src.size(0) == 1), "Beam search must be performed with batch size 1" 
         enc_out = self.encoder(src)
         return self.decoder.beam_search(enc_out, pad_idx, sos_idx, eos_idx, beam_size)
 

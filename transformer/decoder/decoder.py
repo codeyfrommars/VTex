@@ -56,7 +56,7 @@ class Decoder(nn.Module):
         trg = trg.permute(1,0,2)
         trg = self.decoder(tgt=trg, memory=enc_out, tgt_mask=trg_mask, tgt_key_padding_mask=trg_pad_mask, memory_key_padding_mask=enc_mask)
 
-        # TODO: Reshape to [batch, len, dim]
+        # Reshape to [batch, len, dim]
         trg = trg.permute(1,0,2)
         # final linear layer
         out = self.linear(trg)
