@@ -22,7 +22,7 @@ class Decoder(nn.Module):
         self.device = device
         self.max_length = max_length
         self.vocab_size = vocab_size
-        self.embed = DecoderEmbedding(dim_model, vocab_size, max_length, dropout)
+        self.embed = DecoderEmbedding(dim_model, vocab_size, max_length, dropout, device=device)
 
         # self.layers = nn.ModuleList(
         #     [

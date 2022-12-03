@@ -33,7 +33,7 @@ class Encoder(nn.Module):
 
         # Image positional encoding
         # self.embed = EncoderEmbedding(height//16, width//16, dim_model)
-        self.embed = EncoderEmbedding(dim_model) # /32 if using pretrained densenet
+        self.embed = EncoderEmbedding(dim_model, device=device) # /32 if using pretrained densenet
         self.dim_model = dim_model
 
     def forward(self, img):
