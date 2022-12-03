@@ -109,9 +109,9 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # new src [2, 1, 1000, 1000]
-    src1 = torch.rand(256, 256).unsqueeze(0).to(device)
+    src1 = torch.rand(206, 1056).unsqueeze(0).to(device)
     # src1 = src1.repeat(3,1,1)
-    src2 = torch.rand(256, 256).unsqueeze(0).to(device)
+    src2 = torch.rand(206, 1056).unsqueeze(0).to(device)
     # src2 = src2.repeat(3,1,1)
     src = torch.stack((src1, src2), dim=0)
 
