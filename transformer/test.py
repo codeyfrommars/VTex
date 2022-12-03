@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 import editdistance
 
 # Update these to use different test dataset
-gt_test = "./transformer/data/groundtruth_2016.tsv"
-tokensfile = "./transformer/data/tokens.tsv"
-root = "./transformer/data/test/2016/"
+# TODO: update
+gt_test = "./transformer/data2/groundtruth_2019.txt"
+tokensfile = "./transformer/data2/tokens.txt"
+root = "./transformer/data2/2019/"
 checkpoint_path = "./checkpoints"
 
 imgWidth = 256
@@ -25,9 +26,10 @@ transformers = transforms.Compose(
     [
         # Resize so all images have the same size
         transforms.Resize((imgWidth, imgHeight)),
-        transforms.ToTensor(),
+        transforms.ToTensor(), # normalize to [0,1]
         # normalize
-        transforms.Normalize([0.5], [0.5])
+        # transforms.Normalize([0.5], [0.5])
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]
 )
 

@@ -9,10 +9,10 @@ import transformer_vtex
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-gt_train = "./transformer/data/gt_split/train.tsv"
-gt_validation = "./transformer/data/gt_split/validation.tsv"
-tokensfile = "./transformer/data/tokens.tsv"
-root = "./transformer/data/train/"
+gt_train = "./transformer/data2/gt_split/train.txt"
+gt_validation = "./transformer/data2/gt_split/validation.txt" # Train on 2014 dataset
+tokensfile = "./transformer/data2/tokens.txt"
+root = "./transformer/data2/train/"
 checkpoint_path = "./checkpoints"
 
 imgWidth = 256
@@ -36,7 +36,7 @@ def train_loop(model, opt, loss_fn, dataloader, device):
     for batch in dataloader:
         x = torch.tensor(batch["image"], device=device)
         y = torch.tensor(batch["truth"]["encoded"], device=device)
-        y[y == -1] = trg_pad_idx
+        # y[y == -1] = model.trg_pad_idx
 
         # Shift tgt input by 1 for prediction
         y_input = y[:, :-1]
@@ -62,11 +62,12 @@ def validation_loop(model, loss_fn, dataloader, device):
     model.eval()
     total_loss = 0
 
+    # TODO: redo this with beam search
     with torch.no_grad():
         for batch in dataloader:
             x = torch.tensor(batch["image"], device=device)
             y = torch.tensor(batch["truth"]["encoded"], device=device)
-            y[y == -1] = trg_pad_idx
+            # y[y == -1] = model.trg_pad_idx
 
 
             # Shift tgt input by 1 for prediction
@@ -93,13 +94,13 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     start_epoch = 0
 
     # Load checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    opt.load_state_dict(checkpoint['optimizer_state_dict'])
-    start_epoch = checkpoint['epoch'] + 1
+    # checkpoint = torch.load(checkpoint_path, map_location=device)
+    # model.load_state_dict(checkpoint['model_state_dict'])
+    # opt.load_state_dict(checkpoint['optimizer_state_dict'])
+    # start_epoch = checkpoint['epoch'] + 1
 
     # Freeze the CNN params
-    # model.encoder.freezeCNN()
+    model.encoder.freezeCNN()
 
     model = nn.DataParallel(model) # Comment out if using only one GPU
     
@@ -123,7 +124,7 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
-            #'model_state_dict': model.state_dict(),
+            # 'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
             'train_loss': train_loss,
             'validation_loss': validation_loss,
@@ -172,7 +173,7 @@ def train(model, device):
 
     print("Loaded Validation Dataset")
 
-    opt = torch.optim.Adadelta(model.parameters(), lr=0.01, weight_decay=1e-04)
+    opt = torch.optim.Adadelta(model.parameters(), lr=1.0, weight_decay=1e-04)
     loss_fn = nn.CrossEntropyLoss()
     fit(model, opt, loss_fn, train_data_loader, validation_data_loader, epochs=5000, device=device)
 
