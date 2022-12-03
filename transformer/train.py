@@ -15,17 +15,14 @@ tokensfile = "./transformer/data2/tokens.txt"
 root = "./transformer/data2/train/"
 checkpoint_path = "./checkpoints"
 
-imgWidth = 256
-imgHeight = 256
-
 transformers = transforms.Compose(
     [
-        # Resize so all images have the same size
-        transforms.Resize((imgWidth, imgHeight)),
+        # Resize so all images have dim at least 224 for pretrained CNN
+        # transforms.Resize(224),
         transforms.ToTensor(), # normalize to [0,1]
         # normalize
         # transforms.Normalize([0.5], [0.5])
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]
 )
 
@@ -62,7 +59,6 @@ def validation_loop(model, loss_fn, dataloader, device):
     model.eval()
     total_loss = 0
 
-    # TODO: redo this with beam search
     with torch.no_grad():
         for batch in dataloader:
             x = torch.tensor(batch["image"], device=device)
@@ -98,9 +94,6 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     # model.load_state_dict(checkpoint['model_state_dict'])
     # opt.load_state_dict(checkpoint['optimizer_state_dict'])
     # start_epoch = checkpoint['epoch'] + 1
-
-    # Freeze the CNN params
-    model.encoder.freezeCNN()
 
     model = nn.DataParallel(model) # Comment out if using only one GPU
     
@@ -191,6 +184,6 @@ if __name__ == "__main__":
     max_trg_length = 100
 
     # Initialize model
-    model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, imgHeight, imgWidth).to(device)
+    model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length).to(device)
     train(model, device)
 

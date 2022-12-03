@@ -30,12 +30,12 @@ class EncoderEmbedding(nn.Module):
     """
     Applies positional encoding over 2D, embedding pixel position information
     """
-    def __init__(self, height, width, dim_model):
+    def __init__(self, dim_model):
         super(EncoderEmbedding, self).__init__()
         # [width, dim_model//2]
-        self.x_pos_emb = PositionalEncoding(dim_model//2, width)
+        # self.x_pos_emb = PositionalEncoding(dim_model//2, width)
         # [height, dim_model//2]
-        self.y_pos_emb = PositionalEncoding(dim_model//2, height)
+        # self.y_pos_emb = PositionalEncoding(dim_model//2, height)
         self.dim_model = dim_model
 
     def forward(self, x):
@@ -44,9 +44,11 @@ class EncoderEmbedding(nn.Module):
         x [batch_size, height, width, dim_model]
         """
         _, height, width, _ = x.size()
+        x_pos = PositionalEncoding(self.dim_model//2, width)
+        y_pos = PositionalEncoding(self.dim_model//2, height)
         # Concatenate the x_pos_emb and y_pos_emb
-        x_pos_emb = self.x_pos_emb(width) 
-        y_pos_emb = self.y_pos_emb(height)
+        x_pos_emb = x_pos(width) 
+        y_pos_emb = y_pos(height)
         # [width, dim_model//2] -> [height, width, dim_model//2]
         x_pos_emb = x_pos_emb.unsqueeze(0)
         x_pos_emb = x_pos_emb.repeat(height, 1, 1)

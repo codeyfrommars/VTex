@@ -26,14 +26,23 @@ def load_vocab(tokens_file):
 
 
 def collate_batch(data):
+    batch_size = len(data)
     max_len = max([len(d["truth"]["encoded"]) for d in data])
+    max_h = max([d["image"].size(1)for d in data])
+    max_w = max([d["image"].size(2)for d in data])
     padded_encoded = [
         d["truth"]["encoded"] + (max_len - len(d["truth"]["encoded"])) * [PAD_IDX]
         for d in data
     ]
+    # Resize images to max size
+    images = torch.zeros(batch_size, 1, max_h, max_w)
+    for idx, d in enumerate(data):
+        images[idx, :, : d["image"].size(1), : d["image"].size(2)] = d["image"]
+
+
     return {
         "path": [d["path"] for d in data],
-        "image": torch.stack([d["image"] for d in data], dim=0),
+        "image": images,
         "truth": {
             "text": [d["truth"]["text"] for d in data],
             "encoded": torch.tensor(padded_encoded),
@@ -82,7 +91,6 @@ class CrohmeDataset(Dataset):
                             "text": ' '.join(formula),
                             "encoded": [
                                 self.token_to_id[START],
-                                # *encode_truth(formula, self.token_to_id),
                                 *[self.token_to_id[x] for x in formula],
                                 self.token_to_id[END],
                             ],
@@ -95,12 +103,12 @@ class CrohmeDataset(Dataset):
 
     def __getitem__(self, i):
         item = self.data[i]
-        image = Image.open(item["path"])
-        # Remove alpha channel
+        image = Image.open(item["path"]) # Image is a bitmap
+        # Grayscale
         # image = image.convert("RGB").convert('L')
 
         # 3 channel RGB
-        image = image.convert("RGB")
+        # image = image.convert("RGB")
         
 
         if self.crop:
