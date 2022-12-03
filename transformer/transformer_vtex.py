@@ -48,7 +48,8 @@ class Transformer(nn.Module):
         # Create pad masks for transformer
         # TODO: encoder-decoder pad mask
         # enc_dec_mask = self.make_pad_mask()
-        trg_mask = self._make_pad_mask(trg, self.trg_pad_idx) * self._make_trg_mask(trg)
+        # trg_mask = self._make_pad_mask(trg, self.trg_pad_idx) * self._make_trg_mask(trg)
+        trg_mask = self._make_trg_mask(trg)
 
         # Encoder
         # enc_out [batch_size, (height//16) * (width//16), dim_model]
@@ -56,7 +57,7 @@ class Transformer(nn.Module):
 
         # Decoder
         # dec_out [batch_size, trg_seq_len, trg_vocab_size]
-        dec_out = self.decoder(trg, enc_out, trg_mask)
+        dec_out = self.decoder(trg, enc_out, trg_mask, self.trg_pad_idx, enc_mask=None)
         
         return dec_out
 
@@ -76,9 +77,9 @@ class Transformer(nn.Module):
     def _make_trg_mask(self, trg):
         """
         This mask hides future words, preserving autoregressive property
-        [[1, 0, 0]
-         [1, 1, 0]
-         [1, 1, 1]]
+        [[0, 1, 1]
+         [0, 0, 1]
+         [0, 0, 0]]
         Returns [seq_len, seq_len]
         """
         # trg is shape [batch_size, seq_len]
@@ -86,7 +87,7 @@ class Transformer(nn.Module):
         mask = torch.full(
             (seq_len, seq_len), fill_value=1, dtype=torch.bool, device=self.device
         )
-        mask.triu_(diagonal=1)  # zero out the upper diagonal
+        mask.triu_(diagonal=1)  # zero out the lower diagonal
         # mask [seq_len, seq_len]
         assert (mask.size() == (seq_len, seq_len)), "make_trg_mask incorrect"
         return mask == 0

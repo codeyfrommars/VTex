@@ -45,7 +45,7 @@ class EncoderEmbedding(nn.Module):
         """
         _, height, width, _ = x.size()
         # Concatenate the x_pos_emb and y_pos_emb
-        x_pos_emb = self.x_pos_emb(width)
+        x_pos_emb = self.x_pos_emb(width) 
         y_pos_emb = self.y_pos_emb(height)
         # [width, dim_model//2] -> [height, width, dim_model//2]
         x_pos_emb = x_pos_emb.unsqueeze(0)
