@@ -15,8 +15,6 @@ class Transformer(nn.Module):
             trg_vocab_size,
             trg_pad_idx,
             max_trg_length,
-            img_height,
-            img_width,
             growth_rate=24,
             block_depth=16,
             compression=0.5,
@@ -31,12 +29,10 @@ class Transformer(nn.Module):
         self.device = device
 
         self.trg_pad_idx = trg_pad_idx
-        self.height = img_height
-        self.width = img_width
         # self.trg_vocab_size = trg_vocab_size
         # self.max_trg_length = max_trg_length
         
-        self.encoder = Encoder(growth_rate, block_depth, compression, dropout_enc, img_height, img_width, dim_model, device)
+        self.encoder = Encoder(growth_rate, block_depth, compression, dropout_enc, dim_model, device)
         self.decoder = Decoder(num_layers, trg_vocab_size, dim_model, num_heads, dim_ff, dropout_dec, max_trg_length, device)
 
     def forward(self, src, trg):
@@ -114,9 +110,9 @@ if __name__ == "__main__":
 
     # new src [2, 1, 1000, 1000]
     src1 = torch.rand(256, 256).unsqueeze(0).to(device)
-    src1 = src1.repeat(3,1,1)
+    # src1 = src1.repeat(3,1,1)
     src2 = torch.rand(256, 256).unsqueeze(0).to(device)
-    src2 = src2.repeat(3,1,1)
+    # src2 = src2.repeat(3,1,1)
     src = torch.stack((src1, src2), dim=0)
 
     trg = torch.tensor([[1,7,3,4,7,2,0],[1,4,3,5,7,9,2]]).to(device)
@@ -124,10 +120,8 @@ if __name__ == "__main__":
     trg_vocab_size = 10 # Latex character by character
     trg_pad_idx = 0 # What index in the dictory is the pad character
     max_trg_length = 100
-    img_height = 256
-    img_width = 256
 
-    model = Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length, img_height, img_width).to(device)
+    model = Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length).to(device)
 
     out = model(src, trg[:, :-1])
     print(out.shape)
