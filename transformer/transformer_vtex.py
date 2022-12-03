@@ -84,7 +84,7 @@ class Transformer(nn.Module):
         mask.triu_(diagonal=1)  # zero out the lower diagonal
         # mask [seq_len, seq_len]
         assert (mask.size() == (seq_len, seq_len)), "make_trg_mask incorrect"
-        return mask == 0
+        return mask
 
     def beam_search(self, src, pad_idx, sos_idx, eos_idx, beam_size=10):
         """

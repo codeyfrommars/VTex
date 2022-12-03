@@ -30,8 +30,8 @@ class Decoder(nn.Module):
         #         for _ in range(num_layers)
         #     ]
         # )
-        decoder_layer = nn.TransformerDecoderLayer(d_model=dim_model, nhead=num_heads, dim_feedforward=dim_ff, dropout=dropout)
-        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+        self.decoder_layer = nn.TransformerDecoderLayer(d_model=dim_model, nhead=num_heads, dim_feedforward=dim_ff, dropout=dropout)
+        self.decoder = nn.TransformerDecoder(self.decoder_layer, num_layers=num_layers)
 
         self.linear = nn.Linear(dim_model, vocab_size)
 

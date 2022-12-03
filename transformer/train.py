@@ -95,7 +95,8 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     # opt.load_state_dict(checkpoint['optimizer_state_dict'])
     # start_epoch = checkpoint['epoch'] + 1
 
-    model = nn.DataParallel(model) # Comment out if using only one GPU
+# TODO: uncomment
+    # model = nn.DataParallel(model) # Comment out if using only one GPU
     
     for epoch in range(start_epoch, epochs):
         print("-"*25, f"Epoch {epoch + 1}","-"*25)
@@ -116,8 +117,8 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         # filename = "{prefix}{num:0>4}.pth".format(num=checkpoint["epoch"], prefix="checkpoint")
         torch.save({
             'epoch': epoch,
-            'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
-            # 'model_state_dict': model.state_dict(),
+            # 'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
+            'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
             'train_loss': train_loss,
             'validation_loss': validation_loss,
