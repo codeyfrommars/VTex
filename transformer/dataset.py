@@ -13,6 +13,8 @@ START_IDX = 0
 END_IDX = 1
 PAD_IDX = 2
 
+MAX_IMG_SIZE = 500
+MAX_TRG_LEN = 50
 
 def load_vocab(tokens_file):
     with open(tokens_file, "r") as fd:
@@ -84,9 +86,15 @@ class CrohmeDataset(Dataset):
                 tmp = line.strip().split()
                 img_name = tmp[0]
                 formula = tmp[1:]
+                path = os.path.join(root, img_name + ext)
+                image = Image.open(path)
+                if max(image.size) > MAX_IMG_SIZE:
+                    continue
+                if len(formula) > MAX_TRG_LEN:
+                    continue
                 self.data.append(
                     {
-                        "path": os.path.join(root, img_name + ext),
+                        "path": path,
                         "truth": {
                             "text": ' '.join(formula),
                             "encoded": [

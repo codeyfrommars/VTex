@@ -146,7 +146,7 @@ def train(model, device):
     )
     train_data_loader = DataLoader(
         train_dataset,
-        batch_size=32,
+        batch_size=6,
         shuffle=True,
         num_workers=multiprocessing.cpu_count(),
         collate_fn=collate_batch,
@@ -158,7 +158,7 @@ def train(model, device):
     )
     validation_data_loader = DataLoader(
         validation_dataset,
-        batch_size=32,
+        batch_size=6,
         shuffle=True,
         num_workers=multiprocessing.cpu_count(),
         collate_fn=collate_batch,
@@ -181,7 +181,8 @@ if __name__ == "__main__":
     train_dataset = CrohmeDataset(gt_train, tokensfile, root=root, crop=False)
     trg_pad_idx = train_dataset.token_to_id[PAD]
     trg_vocab_size =  len(train_dataset.token_to_id)
-    max_trg_length = 100
+    max_trg_length = 55
+    max_img_size = 500
 
     # Initialize model
     model = transformer_vtex.Transformer(device, trg_vocab_size, trg_pad_idx, max_trg_length).to(device)

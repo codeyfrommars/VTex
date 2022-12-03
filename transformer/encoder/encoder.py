@@ -55,7 +55,7 @@ class Encoder(nn.Module):
         features = self.reshape_norm(features)
 
         # print(features.size())
-        assert (features.size() == (batch_size, height//16, width//16, self.dim_model)), "feature reshape incorrect shape"
+        # assert (features.size() == (batch_size, round(height/16), round(width/16), self.dim_model)), "feature reshape incorrect shape"
 
         # Image positional encoding
         features = self.embed(features)
@@ -65,7 +65,7 @@ class Encoder(nn.Module):
         # after: [batch_size, height/16 * width/16, dim_model]
         features = torch.flatten(features, start_dim=1, end_dim=2)
 
-        assert (features.size() == (batch_size, (height//16) * (width//16), self.dim_model)), "Encoder output incorrect shape"
+        # assert (features.size() == (batch_size, round(height/16) * round(width/16), self.dim_model)), "Encoder output incorrect shape"
 
         return features
 
