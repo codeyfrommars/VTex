@@ -24,27 +24,40 @@ class Decoder(nn.Module):
         self.vocab_size = vocab_size
         self.embed = DecoderEmbedding(dim_model, vocab_size, max_length, dropout)
 
-        self.layers = nn.ModuleList(
-            [
-                DecoderLayer(dim_model, num_heads, dim_ff, dropout)
-                for _ in range(num_layers)
-            ]
-        )
+        # self.layers = nn.ModuleList(
+        #     [
+        #         DecoderLayer(dim_model, num_heads, dim_ff, dropout)
+        #         for _ in range(num_layers)
+        #     ]
+        # )
+        decoder_layer = nn.TransformerDecoderLayer(d_model=dim_model, nhead=num_heads, dim_feedforward=dim_ff, dropout=dropout)
+        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+
         self.linear = nn.Linear(dim_model, vocab_size)
 
-    def forward(self, trg, enc_out, trg_mask, enc_mask=None):
+    def forward(self, trg, enc_out, trg_mask, pad_idx, enc_mask=None):
         """
         trg [batch_size, seq_len]
         enc_out [batch_size, seq_len, dim_model]
         mask [batch_size, 1, seq_len, seq_len]
         """
+        # Create pad mask
+        trg_pad_mask = trg == pad_idx
+
         # add word + position embedding
-        trg = self.embed(trg)
+        trg = self.embed(trg) # [b, l, dim]
 
-        # apply decoder layers
-        for layer in self.layers:
-            trg = layer(trg, enc_out, trg_mask, enc_mask)
+        # # apply decoder layers
+        # for layer in self.layers:
+        #     trg = layer(trg, enc_out, trg_mask, enc_mask)
 
+        # Reshape to [len, batch, dim]
+        enc_out = enc_out.permute(1,0,2)
+        trg = trg.permute(1,0,2)
+        trg = self.decoder(tgt=trg, memory=enc_out, tgt_mask=trg_mask, tgt_key_padding_mask=trg_pad_mask, memory_key_padding_mask=enc_mask)
+
+        # TODO: Reshape to [batch, len, dim]
+        trg = trg.permute(1,0,2)
         # final linear layer
         out = self.linear(trg)
 
