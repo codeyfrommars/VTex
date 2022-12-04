@@ -14,10 +14,10 @@ import editdistance
 gt_test = "./transformer/data2/groundtruth_2019.txt"
 tokensfile = "./transformer/data2/tokens.txt"
 root = "./transformer/data2/2019/"
-checkpoint_path = "./checkpoints"
+checkpoint_path = "./checkpoints_bttr_data500"
 
 
-max_trg_length = 100
+max_trg_length = 55
 
 transformers = transforms.Compose(
     [
