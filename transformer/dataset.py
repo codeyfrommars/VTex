@@ -128,4 +128,6 @@ class CrohmeDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
+        image = image.repeat(3,1,1)
+
         return {"path": item["path"], "truth": item["truth"], "image": image}

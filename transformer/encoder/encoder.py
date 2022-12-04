@@ -16,18 +16,18 @@ class Encoder(nn.Module):
 
         self.device = device
         # CNN to extract image features
-        self.cnn = DenseNet(growth_rate, block_depth, compression, dropout)
-        # densenet = models.densenet121(weights='DenseNet121_Weights.DEFAULT')
+        # self.cnn = DenseNet(growth_rate, block_depth, compression, dropout)
+        densenet = models.densenet121(weights='DenseNet121_Weights.DEFAULT')
         # Lock the densenet params
         # for param in densenet.parameters():
         #     param.requires_grad = False
-        # cnn_out_features = densenet.classifier.in_features
-        # self.cnn = nn.Sequential(*list(densenet.features))
+        cnn_out_features = densenet.classifier.in_features
+        self.cnn = nn.Sequential(*list(densenet.features))
         # self.freezeCNN()
         
 
         # 1x1 convolution to reshape CNN's output to transformer's d_model dimensions
-        self.reshape_conv = nn.Conv2d(self.cnn.out_features, dim_model, kernel_size=1)
+        self.reshape_conv = nn.Conv2d(cnn_out_features, dim_model, kernel_size=1)
         self.reshape_norm = nn.LayerNorm(dim_model)
         self.reshape_relu = nn.ReLU(inplace=True)
 

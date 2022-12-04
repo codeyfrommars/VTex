@@ -95,6 +95,8 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     # opt.load_state_dict(checkpoint['optimizer_state_dict'])
     # start_epoch = checkpoint['epoch'] + 1
 
+    model.encoder.freezeCNN()
+
     model = nn.DataParallel(model) # Comment out if using only one GPU
     
     for epoch in range(start_epoch, epochs):
