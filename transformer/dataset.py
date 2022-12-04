@@ -37,7 +37,7 @@ def collate_batch(data):
         for d in data
     ]
     # Resize images to max size
-    images = torch.zeros(batch_size, 1, max_h, max_w)
+    images = torch.zeros(batch_size, 3, max_h, max_w)
     for idx, d in enumerate(data):
         images[idx, :, : d["image"].size(1), : d["image"].size(2)] = d["image"]
 
