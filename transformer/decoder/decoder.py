@@ -88,8 +88,11 @@ class Decoder(nn.Module):
             assert hyp_num <= beam_size, f"hyp_num: {hyp_num}, beam_size: {beam_size}"
             # Decoder prediction
             enc_out_reshape = enc_out.repeat(hyp_num, 1, 1) # [hyp_num, seq_len, dim_model]
-            mask = self._make_pad_mask(hypotheses, pad_idx)
-            decoder_output = self(hypotheses, enc_out_reshape, mask) # [hyp_num, seq_len, classes]
+            # mask = self._make_pad_mask(hypotheses, pad_idx)
+            mask = torch.full(
+                (self.max_length, self.max_length), fill_value=0, dtype=torch.bool, device=self.device
+            )
+            decoder_output = self(hypotheses, enc_out_reshape, mask, pad_idx) # [hyp_num, seq_len, classes]
             decoder_output = decoder_output[:, t, :] # take the seq_len relevant to us
             log_probs = nn.functional.log_softmax(decoder_output, dim=-1) #[hyp_num, classes]
             log_probs = log_probs / self._sequence_length_penalty(t+1, 0.6) # penalize longer sequences (optional)
