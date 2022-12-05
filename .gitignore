@@ -1,5 +1,7 @@
 mediapipe/cvtest.ipynb
 mediapipe/screenshots
+mediapipe/airdrawTest.py
+mediapipe/bmpdraw.py
 vtex
 __pycache__
 .vscode
