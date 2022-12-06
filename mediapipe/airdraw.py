@@ -6,28 +6,23 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
 
-bpoints = [deque(maxlen = 1024)]
-gpoints = [deque(maxlen = 1024)]
-rpoints = [deque(maxlen = 1024)]
-ypoints = [deque(maxlen = 1024)]
+# input image size to the transformer model
+TRANS_IMG_SIZE = (256, 256)
+
 wpoints = [deque(maxlen = 1024)]
 
 # These indexes will be used to mark position
 # of pointers in colour array
-blue_index = 0
-green_index = 0
-red_index = 0
-yellow_index = 0
 white_index = 0
 
 # The colours which will be used as ink for
 # the drawing purpose
-colors = [(255, 255, 255), (255, 0, 0), (0, 255, 0),
+colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0),
         (0, 0, 255), (0, 255, 255)]
 colorIndex = 0
 
 # Here is code for Canvas setup
-paintWindow = np.zeros((471, 636, 3))   
+paintWindow = np.zeros((471, 636, 3)) + 255 
 
 # For webcam input:
 cap = cv2.VideoCapture(0)
@@ -39,6 +34,7 @@ with mp_hands.Hands(
 
     imageIndex = 0
     screenshotFlag = True
+    enableDraw = True
     # screenshotWait = 45
     while cap.isOpened():
         success, image = cap.read()
@@ -76,8 +72,7 @@ with mp_hands.Hands(
                 for landmarks in hand_landmarks.landmark:
                     handLandmarks.append([landmarks.x, landmarks.y])
 
-                # Test conditions for each finger: Count is increased if finger is 
-                #   considered raised.
+                
                 # Thumb: TIP x position must be greater or lower than IP x position, 
                 #   deppeding on hand label.
                 # if handLabel == "Left" and handLandmarks[4][0] > handLandmarks[3][0]:
@@ -88,87 +83,70 @@ with mp_hands.Hands(
                 # Other fingers: TIP y position must be lower than PIP y position, 
                 #   as image origin is in the upper left corner.
 
-                # if all 5 fingers of your left hand are raised, then clear drawings
+                # if all 4 fingers of your left hand (no thumb) are raised, then clear drawings
                 if handLabel == "Right":
                     if handLandmarks[12][1] < handLandmarks[10][1] and \
                     handLandmarks[16][1] < handLandmarks[14][1] and \
                     handLandmarks[20][1] < handLandmarks[18][1] and \
                     handLandmarks[8][1] < handLandmarks[6][1]:
-                        paintWindow = np.zeros((471, 636, 3))   
+                        paintWindow = np.zeros((471, 636, 3)) + 255  
                         wpoints = [deque(maxlen = 1024)]
                         white_index = 0
                         continue
 
+                    # if handLandmarks[12][1] >= handLandmarks[10][1] and \
+                    # handLandmarks[16][1] >= handLandmarks[14][1] and \
+                    # handLandmarks[20][1] >= handLandmarks[18][1] and \
+                    # handLandmarks[8][1] < handLandmarks[6][1]:
+                    #     enableDraw = True
+                    # else:
+                    #     enableDraw = False
+
                 elif handLabel == "Left":
-                    # screenshot if 5 right fingers are raised
+
+                    # screenshot if 4 right fingers (no thumb) are raised
                     if handLandmarks[12][1] < handLandmarks[10][1] and \
                     handLandmarks[16][1] < handLandmarks[14][1] and \
                     handLandmarks[20][1] < handLandmarks[18][1] and \
                     handLandmarks[8][1] < handLandmarks[6][1] and \
                     screenshotFlag:
-                        cv2.imwrite('/UTAustin/Fall2022/CV/VTex/mediapipe/screenshots/' + str(imageIndex) + '.png',cv2.flip(paintWindow, 1))
+                        # resize canvas to Transformer image size (256, 256)
+                        paintImg = cv2.resize(paintWindow, TRANS_IMG_SIZE)
+                        cv2.imwrite('/UTAustin/Fall2022/CV/VTex/mediapipe/screenshots/' + str(imageIndex) + '.png',cv2.flip(paintImg, 1))
                         imageIndex += 1
                         screenshotFlag = False
                         # screenshotWait = 0
                         print("here")
+                    
 
-                    # right index finger is raised to draw
+                    # right index finger is raised to draw (only if the 
+                    # right index finger is raised, other right fingers can't be raised)
                     elif handLandmarks[12][1] >= handLandmarks[10][1] and \
                     handLandmarks[16][1] >= handLandmarks[14][1] and \
                     handLandmarks[20][1] >= handLandmarks[18][1] and \
-                    handLandmarks[8][1] < handLandmarks[6][1]:     
-                        # index[0] = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * frame_width)
-                        # index[0] = max(0, min(index[0], frame_width))
-                        # index[1] = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * frame_height)
-                        # index[1] = max(0, min(index[1], frame_height))
+                    handLandmarks[8][1] < handLandmarks[6][1] and enableDraw:     
                         point = handLandmarks[8]
                         point = (int(point[0]*image.shape[1]), int(point[1]*image.shape[0]))
                         if colorIndex == 0:
                             wpoints[white_index].appendleft(point)
                         screenshotFlag = True
                         # screenshotWait += 1
+                    
+                    # add empty point so the new point doesn't connect to the 
+                    # previous point if paused for a long time
                     else:
                         wpoints.append(deque(maxlen = 512))
                         white_index += 1
-                        # screenshotFlag = True
-                        # screenshotWait += 1
-                # print(point)
-            #   pause += 1
-            #   if pause >= 10:
-            #     print(handLandmarks[8][1], handLandmarks[6][1])
-            #     pause = 0
-            #   fingerCount = fingerCount+1
-
-            # if colorIndex == 0:
-            #         bpoints[blue_index].appendleft(center)
-            #     elif colorIndex == 1:
-            #         gpoints[green_index].appendleft(center)
-            #     elif colorIndex == 2:
-            #         rpoints[red_index].appendleft(center)
-            #     elif colorIndex == 3:
-            #         ypoints[yellow_index].appendleft(center)
-                        
-            # Append the next deques when nothing is
-            # detected to avois messing up
             
-            # bpoints.append(deque(maxlen = 512))
-            # blue_index += 1
-            # gpoints.append(deque(maxlen = 512))
-            # green_index += 1
-            # rpoints.append(deque(maxlen = 512))
-            # red_index += 1
-            # ypoints.append(deque(maxlen = 512))
-            # yellow_index += 1
-
-            # Draw lines of all the colors on the
-            # canvas and frame
-        # points = [bpoints, gpoints, rpoints, ypoints]
+            # draw hand landmarks
             mp_drawing.draw_landmarks(
                 image,
                 hand_landmarks,
                 mp_hands.HAND_CONNECTIONS,
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style())
+        
+        # draw points (line segments between consecutive points)
         points = [wpoints]
         for i in range(len(points)):
             
@@ -187,23 +165,6 @@ with mp_hands.Hands(
         # Show all the windows
         cv2.imshow("Tracking", cv2.flip(image, 1))
         cv2.imshow("Paint", cv2.flip(paintWindow, 1))
-
-
-
-# Flip = 1 means the image is flipped horizontally for a selfie-view display.
-# FLIP = 1
-
-# if FLIP:
-#     flippedImage = cv2.flip(image, 1)
-
-#     # Display finger count
-#     cv2.putText(flippedImage, str(fingerCount), (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 0, 0), 10)
-#     cv2.imshow('MediaPipe Hands', flippedImage)
-
-# else:
-#     # Display finger count
-#     cv2.putText(image, str(fingerCount), (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 0, 0), 10)
-#     cv2.imshow('MediaPipe Hands', image)
 
         if cv2.waitKey(5) & 0xFF == 27:
             break

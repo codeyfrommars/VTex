@@ -8,3 +8,4 @@ transformer/data2/
 transformer/data/
 .vscode
 progress
+mediapipe/airdrawTest.py

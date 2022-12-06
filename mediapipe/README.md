@@ -13,8 +13,11 @@ python Demo2.py
 ```
 ## Air Drawing
 Draw at the tip of your right index finger when your right finger is the only one raised
-- five fingers raised on the left hand: clear drawing 
-- five fingers raised on the right hand: take a screenshot and store it in /mediapipe/screenshots
+- four fingers (no thumb) raised on the left hand: clear drawing 
+- four fingers (no thumb) raised on the right hand: take a screenshot and store it in /mediapipe/screenshots
+
+If you want to pause drawing while holding up the right index finger, lift the middle finger up.
+For example: If I draw "a b", then I would draw "a" with only right index finger up. Next I lift the middle finger up to pause drawing, and shift my hand over to give some space before drawing "b" (lower middle finger to start drawing again)
 ```
 python airdraw.py
 ```
