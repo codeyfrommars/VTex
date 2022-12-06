@@ -12,7 +12,7 @@ import editdistance
 
 # Unzip data.zip and put the correct paths to the test data
 gt_test = "./transformer/data2/groundtruth_2019.txt"
-tokensfile = "./transformer/data2/tokens.txt"
+tokensfile = "./transformer/tokens.txt"
 root = "./transformer/data2/2019/"
 checkpoint_path = "./checkpoints_bttr_data500"
 
