@@ -4,5 +4,7 @@ mediapipe/airdrawTest.py
 mediapipe/bmpdraw.py
 vtex
 __pycache__
+transformer/data2/
+transformer/data/
 .vscode
 progress
