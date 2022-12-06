@@ -9,6 +9,7 @@ import transformer_vtex
 from datetime import datetime
 import matplotlib.pyplot as plt
 
+# Unzip data.zip and put the correct paths to the training data
 gt_train = "./transformer/data2/gt_split/train.txt"
 gt_validation = "./transformer/data2/gt_split/validation.txt" # Train on 2014 dataset
 tokensfile = "./transformer/data2/tokens.txt"
