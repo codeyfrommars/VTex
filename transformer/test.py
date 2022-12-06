@@ -10,7 +10,7 @@ import transformer_vtex
 import matplotlib.pyplot as plt
 import editdistance
 
-# Update these to use different test dataset
+# Unzip data.zip and put the correct paths to the test data
 gt_test = "./transformer/data2/groundtruth_2019.txt"
 tokensfile = "./transformer/data2/tokens.txt"
 root = "./transformer/data2/2019/"
