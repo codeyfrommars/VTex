@@ -1,34 +1,9 @@
 import torch
-import torch.nn as nn
-import numpy as np
-import random
-from dataset import CrohmeDataset, START, PAD, END, collate_batch
-from torch.utils.data import DataLoader
-from torchvision import transforms
-import multiprocessing
+from dataset import CrohmeDataset, START, PAD, END, gt_test, tokensfile, root, checkpoint_path, transformers
 import transformer_vtex
-import matplotlib.pyplot as plt
 import editdistance
 
-# Unzip data.zip and put the correct paths to the test data
-gt_test = "./transformer/data2/groundtruth_2019.txt"
-tokensfile = "./transformer/tokens.txt"
-root = "./transformer/data2/2019/"
-checkpoint_path = "./checkpoints_bttr_data500"
-
-
 max_trg_length = 55
-
-transformers = transforms.Compose(
-    [
-        # Resize so all images have the same size
-        # transforms.Resize((imgWidth, imgHeight)),
-        transforms.ToTensor(), # normalize to [0,1]
-        # normalize
-        # transforms.Normalize([0.5], [0.5])
-        # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]
-)
 
 class ExpRate:
     def __init__(self):
@@ -142,7 +117,6 @@ def beam_search(model: transformer_vtex.Transformer, device):
             output = model.beam_search(src, pad_idx, sos_idx, eos_idx, beam_size=10)
 
             print ("Expected: " + str(truth["text"]))
-            # print ("Output: " + str(output))
             output_text = ""
             for i in output:
                 output_text = output_text + test_dataset.id_to_token[i.item()]
@@ -182,7 +156,6 @@ def test(model, device, beam_size=10):
             exprate.update(output.tolist(), truth["encoded"])
 
             print ("Expected: " + str(truth["text"]))
-            # print ("Output: " + str(output))
             output_text = ""
             for i in output:
                 if i.item() != sos_idx and i.item() != eos_idx:

@@ -1,31 +1,13 @@
 import torch
 import torch.nn as nn
-import numpy as np
-from dataset import CrohmeDataset, START, PAD, collate_batch
+from dataset import CrohmeDataset, PAD, collate_batch, gt_train, gt_validation, tokensfile, root_train, train_checkpoint_path, transformers
 from torch.utils.data import DataLoader
-from torchvision import transforms
 import multiprocessing
 import transformer_vtex
 from datetime import datetime
 import matplotlib.pyplot as plt
 
 # Unzip data.zip and put the correct paths to the training data
-gt_train = "./transformer/data2/gt_split/train.txt"
-gt_validation = "./transformer/data2/gt_split/validation.txt" # Train on 2014 dataset
-tokensfile = "./transformer/tokens.txt"
-root = "./transformer/data2/train/"
-checkpoint_path = "./checkpoints"
-
-transformers = transforms.Compose(
-    [
-        # Resize so all images have dim at least 224 for pretrained CNN
-        # transforms.Resize(224),
-        transforms.ToTensor(), # normalize to [0,1]
-        # normalize
-        # transforms.Normalize([0.5], [0.5])
-        # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]
-)
 
 def train_loop(model, opt, loss_fn, dataloader, device):
     model.train()
@@ -34,7 +16,6 @@ def train_loop(model, opt, loss_fn, dataloader, device):
     for batch in dataloader:
         x = torch.tensor(batch["image"], device=device)
         y = torch.tensor(batch["truth"]["encoded"], device=device)
-        # y[y == -1] = model.trg_pad_idx
 
         # Shift tgt input by 1 for prediction
         y_input = y[:, :-1]
@@ -64,7 +45,6 @@ def validation_loop(model, loss_fn, dataloader, device):
         for batch in dataloader:
             x = torch.tensor(batch["image"], device=device)
             y = torch.tensor(batch["truth"]["encoded"], device=device)
-            # y[y == -1] = model.trg_pad_idx
 
 
             # Shift tgt input by 1 for prediction
@@ -91,11 +71,6 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
     start_epoch = 0
 
     # Load checkpoint
-    # checkpoint = torch.load(checkpoint_path, map_location=device)
-    # model.load_state_dict(checkpoint['model_state_dict'])
-    # opt.load_state_dict(checkpoint['optimizer_state_dict'])
-    # start_epoch = checkpoint['epoch'] + 1
-
     model = nn.DataParallel(model) # Comment out if using only one GPU
     
     for epoch in range(start_epoch, epochs):
@@ -114,15 +89,13 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
         print()
 
         # Save checkpoint
-        # filename = "{prefix}{num:0>4}.pth".format(num=checkpoint["epoch"], prefix="checkpoint")
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.module.state_dict(), # model.state_dict() if using only one GPU
-            # 'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
             'train_loss': train_loss,
             'validation_loss': validation_loss,
-            }, checkpoint_path)
+            }, train_checkpoint_path)
 
         end = datetime.now()
         print("Elapsed Time: ", (end-start).total_seconds(), "s")
@@ -143,7 +116,7 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs, device):
   
 def train(model, device):
     train_dataset = CrohmeDataset(
-        gt_train, tokensfile, root=root, crop=False, transform=transformers
+        gt_train, tokensfile, root=root_train, crop=False, transform=transformers
     )
     train_data_loader = DataLoader(
         train_dataset,
@@ -155,7 +128,7 @@ def train(model, device):
     print("Loaded Train Dataset")
 
     validation_dataset = CrohmeDataset(
-        gt_validation, tokensfile, root=root, crop=False, transform=transformers
+        gt_validation, tokensfile, root=root_train, crop=False, transform=transformers
     )
     validation_data_loader = DataLoader(
         validation_dataset,
@@ -179,7 +152,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Create a Crohme Dataset to get the <EOS>
-    train_dataset = CrohmeDataset(gt_train, tokensfile, root=root, crop=False)
+    train_dataset = CrohmeDataset(gt_train, tokensfile, root=root_train, crop=False)
     trg_pad_idx = train_dataset.token_to_id[PAD]
     trg_vocab_size =  len(train_dataset.token_to_id)
     max_trg_length = 55

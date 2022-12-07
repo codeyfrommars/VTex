@@ -9,11 +9,9 @@ mp_hands = mp.solutions.hands
 import torch
 import torch.nn as nn
 import numpy as np
-import random
 from dataset import CrohmeDataset, START, PAD, END, collate_batch
 from torch.utils.data import DataLoader
 from torchvision import transforms
-import multiprocessing
 import transformer_vtex as tv
 import matplotlib.pyplot as plt
 import editdistance
@@ -65,24 +63,6 @@ def convert(img_dir, beam_size = 10):
     print(np.unique(ary))
     print(ary.shape)
     print(type(ary))
-    # image = image.convert("RGB")
-    # ary = np.array(image)
-
-    # # Split the three channels
-    # r,g,b = np.split(ary,3,axis=2)
-    # r=r.reshape(-1)
-    # g=r.reshape(-1)
-    # b=r.reshape(-1)
-
-    # # Standard RGB to grayscale 
-    # bitmap = list(map(lambda x: 0.299*x[0]+0.587*x[1]+0.114*x[2], 
-    # zip(r,g,b)))
-    # bitmap = np.array(bitmap).reshape([ary.shape[0], ary.shape[1]])
-    # bitmap = np.dot((bitmap > 128).astype(float),255)
-    # print(np.sum(bitmap == 0))
-    # im = Image.fromarray(bitmap.astype(np.uint8))
-    # im.save(img_dir[:-3] + "bmp")
-
     image = transformers(image)
 
     src = torch.tensor(image, device=Device)
@@ -102,17 +82,6 @@ def run():
 
     pixelSize = 5
 
-    # wpoints = [deque(maxlen = 1024)]
-    # wpoints2 = [deque(maxlen = 1024)]
-    # wpoints3 = [deque(maxlen = 1024)]
-    # wpoints4 = [deque(maxlen = 1024)]
-    # wpoints5 = [deque(maxlen = 1024)]
-    # wpoints6 = [deque(maxlen = 1024)]
-    # wpoints7 = [deque(maxlen = 1024)]
-    # wpoints8 = [deque(maxlen = 1024)]
-    # wpoints9 = [deque(maxlen = 1024)]
-
-    # points = [wpoints, wpoints2, wpoints3, wpoints4, wpoints5, wpoints6, wpoints7, wpoints8, wpoints9]
     points = []
     for i in range(pixelSize**2):
         points.append([deque(maxlen = 1024)])
@@ -143,7 +112,6 @@ def run():
         imageIndex = 0
         screenshotFlag = True
         enableDraw = True
-        # screenshotWait = 45
         while cap.isOpened():
             success, image = cap.read()
 
@@ -157,14 +125,12 @@ def run():
             image.flags.writeable = False
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             results = hands.process(image)
-            # print(results)
 
             # Draw the hand annotations on the image.
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
             if results.multi_hand_landmarks:
-            #   print(results.multi_hand_landmarks)  
                 for hand_landmarks in results.multi_hand_landmarks:
                 # Get hand index to check label (left or right)
                     handIndex = results.multi_hand_landmarks.index(hand_landmarks)
@@ -180,10 +146,6 @@ def run():
                     
                     # Thumb: TIP x position must be greater or lower than IP x position, 
                     #   deppeding on hand label.
-                    # if handLabel == "Left" and handLandmarks[4][0] > handLandmarks[3][0]:
-                    #   fingerCount = fingerCount+1
-                    # elif handLabel == "Right" and handLandmarks[4][0] < handLandmarks[3][0]:
-                    #   fingerCount = fingerCount+1
 
                     # Other fingers: TIP y position must be lower than PIP y position, 
                     #   as image origin is in the upper left corner.
@@ -197,17 +159,8 @@ def run():
                             paintWindow = np.zeros((471, 636, 1)) 
                             for i in range(pixelSize**2):
                                 points[i] = [deque(maxlen = 1024)]
-                            # wpoints = [deque(maxlen = 1024)]
                             white_index = 0
                             continue
-
-                        # if handLandmarks[12][1] >= handLandmarks[10][1] and \
-                        # handLandmarks[16][1] >= handLandmarks[14][1] and \
-                        # handLandmarks[20][1] >= handLandmarks[18][1] and \
-                        # handLandmarks[8][1] < handLandmarks[6][1]:
-                        #     enableDraw = True
-                        # else:
-                        #     enableDraw = False
 
                     elif handLabel == "Left":
 
@@ -218,14 +171,12 @@ def run():
                         handLandmarks[8][1] < handLandmarks[6][1] and \
                         screenshotFlag:
                             # resize canvas to Transformer image size (256, 256)
-                            # paintImg = cv2.resize(paintWindow, TRANS_IMG_SIZE)
                             paintImg = paintWindow
                             canvasDir = draw_dir + str(imageIndex) + '.bmp'
                             paintImg = cv2.resize(paintImg, (300, 235), interpolation=cv2.INTER_NEAREST)
                             cv2.imwrite(canvasDir,cv2.flip(paintImg, 1))
                             imageIndex += 1
                             screenshotFlag = False
-                            # screenshotWait = 0
                             print("Saved Screenshot at", canvasDir)
                             convert(canvasDir)
                         
@@ -240,22 +191,18 @@ def run():
                             point = (int(point[0]*image.shape[1]), int(point[1]*image.shape[0]))
                             count = 0
                             if colorIndex == 0:
-                                # print(-pixelSize//2)
                                 for i in range(-(pixelSize//2), pixelSize//2+1):
                                     for j in range(-(pixelSize//2), pixelSize//2+1):
                                         print(count)
                                         points[count][white_index].appendleft((point[0]+j, point[1]+i))
                                         count += 1
-                                # wpoints[white_index].appendleft(point)
                             screenshotFlag = True
-                            # screenshotWait += 1
                         
                         # add empty point so the new point doesn't connect to the 
                         # previous point if paused for a long time
                         else:
                             for i in range(pixelSize**2):
                                 points[i].append(deque(maxlen=512))
-                                # wpoints.append(deque(maxlen = 512))
                             white_index += 1
                 
                 # draw hand landmarks
@@ -266,9 +213,6 @@ def run():
                     mp_drawing_styles.get_default_hand_landmarks_style(),
                     mp_drawing_styles.get_default_hand_connections_style())
             
-            # draw points (line segments between consecutive points)
-            # points = [wpoints]
-            # points = [wpoints, wpoints2, wpoints3, wpoints4, wpoints5, wpoints6, wpoints7, wpoints8, wpoints9]
             for i in range(len(points)):
                 
                 for j in range(len(points[i])):

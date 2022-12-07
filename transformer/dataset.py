@@ -5,6 +5,7 @@ import os
 import torch
 from PIL import Image, ImageOps
 from torch.utils.data import Dataset
+from torchvision import transforms
 
 START = "<SOS>"
 END = "<EOS>"
@@ -15,6 +16,23 @@ PAD_IDX = 2
 
 MAX_IMG_SIZE = 500
 MAX_TRG_LEN = 50
+
+# File paths
+gt_test = "./transformer/data2/groundtruth_2019.txt"
+tokensfile = "./transformer/tokens.txt"
+root = "./transformer/data2/2019/"
+checkpoint_path = "./checkpoints_bttr_data500"
+gt_train = "./transformer/data2/gt_split/train.txt"
+gt_validation = "./transformer/data2/gt_split/validation.txt" # Train on 2014 dataset
+root_train = "./transformer/data2/train/"
+train_checkpoint_path = "./checkpoints"
+
+transformers = transforms.Compose(
+    [
+        transforms.ToTensor(), # normalize to [0,1]
+    ]
+)
+
 
 def load_vocab(tokens_file):
     with open(tokens_file, "r") as fd:
@@ -112,12 +130,6 @@ class CrohmeDataset(Dataset):
     def __getitem__(self, i):
         item = self.data[i]
         image = Image.open(item["path"]) # Image is a bitmap
-        # Grayscale
-        # image = image.convert("RGB").convert('L')
-
-        # 3 channel RGB
-        # image = image.convert("RGB")
-        
 
         if self.crop:
             # Image needs to be inverted because the bounding box cuts off black pixels,
