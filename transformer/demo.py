@@ -60,9 +60,9 @@ def convert(img_dir, beam_size = 10):
     # Remove alpha channel
     image = image.convert("RGB").convert('L')
     ary = np.array(image)
-    print(np.unique(ary))
-    print(ary.shape)
-    print(type(ary))
+    # print(np.unique(ary))
+    # print(ary.shape)
+    # print(type(ary))
     image = transformers(image)
 
     src = torch.tensor(image, device=Device)
