@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 from collections import deque
 import numpy as np
+import os
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -17,13 +18,14 @@ import matplotlib.pyplot as plt
 import editdistance
 from PIL import Image, ImageOps
 
+
 # Update these to use different test dataset
 gt_test = "./transformer/data2/groundtruth_2019.txt"
 tokensfile = "./transformer/tokens.txt"
 root = "./transformer/data2/2019/"
 checkpoint_path = "./checkpoints_bttr_data500"
 
-draw_dir = "./mediapipe/screenshots/"
+draw_dir = "./transformer/feedimg/"
 # input image size to the transformer model
 TRANS_IMG_SIZE = (256, 256)
 # BEAM_SIZE = 10
@@ -267,5 +269,8 @@ if __name__ == "__main__":
 
     Model.eval()
 
+
+    if not os.path.exists(draw_dir):
+        os.mkdir(draw_dir)
     # run mediapipe
     run()
