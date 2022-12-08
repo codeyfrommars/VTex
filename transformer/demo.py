@@ -18,6 +18,10 @@ import matplotlib.pyplot as plt
 import editdistance
 from PIL import Image, ImageOps
 
+# no pytorch warning
+import warnings
+warnings.filterwarnings("ignore")
+
 
 # Update these to use different test dataset
 gt_test = "./transformer/data2/groundtruth_2019.txt"
@@ -77,7 +81,7 @@ def convert(img_dir, beam_size = 10):
         for i in output:
             if i.item() != Sos_idx and i.item() != Eos_idx:
                 output_text = output_text + test_dataset.id_to_token[i.item()]
-        print ("Predicted LaTex of", img_dir, "is:  " + output_text)
+        print ("Predicted LaTex of", img_dir.split('/')[-1], "is:  " + output_text, flush=True)
 
 # run mediapipe program
 def run():
@@ -118,7 +122,7 @@ def run():
             success, image = cap.read()
 
             if not success:
-                print("Ignoring empty camera frame.")
+                print("Ignoring empty camera frame.", flush=True)
                 # If loading a video, use 'break' instead of 'continue'.
                 continue
 
@@ -179,7 +183,7 @@ def run():
                             cv2.imwrite(canvasDir,cv2.flip(paintImg, 1))
                             imageIndex += 1
                             screenshotFlag = False
-                            print("Saved drawing canvas at", canvasDir)
+                            print("Saved drawing canvas at", canvasDir, flush=True)
                             convert(canvasDir)
                         
 
@@ -260,12 +264,12 @@ if __name__ == "__main__":
     Sos_idx = test_dataset.token_to_id[START]
     Eos_idx = test_dataset.token_to_id[END]
     Pad_idx = test_dataset.token_to_id[PAD]
-    print("Loaded Test Dataset")
+    print("Loaded Test Dataset", flush=True)
 
     # load checkpoint
     checkpoint = torch.load(checkpoint_path, map_location=Device)
     Model.load_state_dict(checkpoint['model_state_dict'])
-    print("Loaded Checkpoint")
+    print("Loaded Checkpoint", flush=True)
 
     Model.eval()
 
