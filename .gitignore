@@ -5,7 +5,6 @@ mediapipe/bmpdraw.py
 transformer/feedimg
 vtex
 __pycache__
-transformer/data2/
 transformer/data/
 .vscode
 progress

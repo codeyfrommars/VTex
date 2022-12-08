@@ -77,7 +77,7 @@ def convert(img_dir, beam_size = 10):
         for i in output:
             if i.item() != Sos_idx and i.item() != Eos_idx:
                 output_text = output_text + test_dataset.id_to_token[i.item()]
-        print ("Output:   " + output_text)
+        print ("Predicted LaTex of", img_dir, "is:  " + output_text)
 
 # run mediapipe program
 def run():
@@ -179,7 +179,7 @@ def run():
                             cv2.imwrite(canvasDir,cv2.flip(paintImg, 1))
                             imageIndex += 1
                             screenshotFlag = False
-                            print("Saved Screenshot at", canvasDir)
+                            print("Saved drawing canvas at", canvasDir)
                             convert(canvasDir)
                         
 
@@ -195,7 +195,7 @@ def run():
                             if colorIndex == 0:
                                 for i in range(-(pixelSize//2), pixelSize//2+1):
                                     for j in range(-(pixelSize//2), pixelSize//2+1):
-                                        print(count)
+                                        # print(count)
                                         points[count][white_index].appendleft((point[0]+j, point[1]+i))
                                         count += 1
                             screenshotFlag = True
