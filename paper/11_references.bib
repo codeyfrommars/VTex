@@ -57,8 +57,50 @@
 @String(CVPRW= {CVPRW})
 @String(CSVT = {IEEE TCSVT})
 
+% Attention is All You Need
+@misc{Attention,
+  doi = {10.48550/ARXIV.1706.03762},
+  url = {https://arxiv.org/abs/1706.03762},
+  author = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia},
+  keywords = {Computation and Language (cs.CL), Machine Learning (cs.LG), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Attention Is All You Need},
+  publisher = {arXiv},
+  year = {2017},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+% CNNs
+% Resnet
+@InProceedings{Resnet2016,
+author = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+title = {Deep Residual Learning for Image Recognition},
+booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+month = {June},
+year = {2016}
+}
+
+% DenseNet
+@InProceedings{Densenet2017,
+author = {Huang, Gao and Liu, Zhuang and van der Maaten, Laurens and Weinberger, Kilian Q.},
+title = {Densely Connected Convolutional Networks},
+booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+month = {July},
+year = {2017}
+}
+
+% BTTR
+@article{ZhaoBTTR2021,
+author = {Wenqi Zhao and Liangcai Gao and Zuoyu Yan and Shuai Peng and Lin Du and Ziyin Zhang},
+title = {Handwritten Mathematical Expression Recognition with Bidirectionally Trained Transformer},
+journal = {International Conference on Document Analysis and Recognition},
+volume = 12822,
+number = 1,
+pages = {570–-584},
+year = 2021
+}
+
 % Most recent article we found on im2latex. Uses CNN, GNN, and RNN
-@article{Peng,
+@article{Peng2021,
 author = {Shuai Peng, Liangcai Gao, Ke Yuan & Zhi Tang},
 title = {Image to LaTeX with Graph Neural Network for Mathematical Formula Recognition},
 journal = {International Conference on Document Analysis and Recognition},
@@ -69,14 +111,14 @@ year = 2021
 }
 
 % Stanford project using CNN in encoder-decoder framework
-@misc{Genthial,
+@misc{Genthial2016,
  author = {Guillaume Genthial and Romain Sauvestre},
  title = {Image to Latex},
  year = 2016
 }
 
 % DenseNet CNN LSTM, C-S attention model
-@article{Wang02,
+@article{Wang2019,
 author = {Jian Wang,Yunchuan Sun, Shenling Wang},
 title = {Image To Latex with DenseNet Encoder and Joint Attention},
 journal = {Procedia Computer Science},
@@ -86,8 +128,19 @@ pages = {374--380},
 year = 2019
 }
 
+% Convmath
+@InProceedings{ConvMath2021,
+  author={Yan, Zuoyu and Zhang, Xiaode and Gao, Liangcai and Yuan, Ke and Tang, Zhi},
+  booktitle={2020 25th International Conference on Pattern Recognition (ICPR)}, 
+  title={ConvMath: A Convolutional Sequence Network for Mathematical Expression Recognition}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={4566-4572},
+  doi={10.1109/ICPR48806.2021.9412913}}
+  
 % Research model improving on seq2seq using CNN, LSTM, and MLE
-@article{Wang,
+@article{Wang2021,
 author = {Zelun Wang, Jyh-Charn Liu},
 title = {Translating Math Formula Images to LaTeX Sequences Using Deep Neural Networks with Sequence-Level Training},
 journal = {International Conference on Document Analysis and Recognition},
@@ -106,9 +159,44 @@ year = 2021
 
 % CROHME dataset
 @misc{CROHME,
- author = {Harold Mouchère},
- title = {CROHME: Competition on Recognition of Online Handwritten Mathematical Expressions},
- year = 2014
+ author = {Mahshad Mahdavi and Richard Zanibbi and Harold Mouchère and Utpal Garain},
+ title = {ICDAR 2019 CROHME + TFD: Competition on Recognition of Handwritten Mathematical Expressions and Typeset Formula Detection},
+ year = 2019
+}
+
+% im2latex
+@misc{im2latex,
+  doi = {10.48550/ARXIV.1609.04938},
+  
+  url = {https://arxiv.org/abs/1609.04938},
+  
+  author = {Deng, Yuntian and Kanervisto, Anssi and Ling, Jeffrey and Rush, Alexander M.},
+  
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), Computation and Language (cs.CL), Machine Learning (cs.LG), Neural and Evolutionary Computing (cs.NE), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {Image-to-Markup Generation with Coarse-to-Fine Attention},
+  
+  publisher = {arXiv},
+  
+  year = {2016},
+  
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+% BLEU
+@inproceedings{BLEU,
+author = {Papineni, Kishore and Roukos, Salim and Ward, Todd and Zhu, Wei-Jing},
+title = {BLEU: A Method for Automatic Evaluation of Machine Translation},
+year = {2002},
+publisher = {Association for Computational Linguistics},
+address = {USA},
+url = {https://doi.org/10.3115/1073083.1073135},
+doi = {10.3115/1073083.1073135},
+booktitle = {Proceedings of the 40th Annual Meeting on Association for Computational Linguistics},
+pages = {311–318},
+numpages = {8},
+location = {Philadelphia, Pennsylvania},
+series = {ACL '02}
 }
 
 % Gulaty's MediaPipe drawing application
@@ -148,6 +236,8 @@ pages = {406--410},
 keywords = {Mixed Reality, Remote Collaboration, Gesture Communication},
 }
 
+
+
 % KIM
 @article{KIM,
 title = {Agile 3D Sketching with Air Scaffolding },
@@ -179,6 +269,14 @@ title = {MediaPipe Hands},
 note = {Overview and documentation page for MediaPipe Hands application},
 year = 2014}
 
+% drawing algorithm insipiration 
+@article{DrawMode,
+author = {geeksforgeeks.org},
+title = {Create Air Canvas Using Python-OpenCV},
+year = {2022},
+url = {https://www.geeksforgeeks.org/create-air-canvas-using-python-opencv/},
+},
+
 %NN Sabournin
 @article{SABOURIN1992843,
 title = {Optical character recognition by a neural network},
@@ -192,4 +290,54 @@ doi = {https://doi.org/10.1016/S0893-6080(05)80144-3},
 url = {https://www.sciencedirect.com/science/article/pii/S0893608005801443},
 author = {Michael Sabourin and Amar Mitiche},
 keywords = {OCR, Multilayer perceptron, Learning parameters, Momentum, Hierarchical classifier},
+}
+
+
+% Yan
+@article{Yan,
+title = {A Multimodal Retrieval and Ranking Method for Scientific Documents Based on HFS and XLNet},
+journal = {Scientific Programming},
+year = {2022},
+doi = {https://doi.org/10.1155/2022/5373531},
+author = {Meichao Yan and Yu Wen and Qingxuan Shi and Xuedong Tian},
+}
+
+% VTransformer
+@misc{VTransformer,
+  doi = {10.48550/ARXIV.2010.11929},
+  
+  url = {https://arxiv.org/abs/2010.11929},
+  
+  author = {Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and Uszkoreit, Jakob and Houlsby, Neil},
+  
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), Artificial Intelligence (cs.AI), Machine Learning (cs.LG), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale},
+  
+  publisher = {arXiv},
+  
+  year = {2020},
+  
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+
+@article{MediaPipeHands,
+  author    = {Fan Zhang and
+               Valentin Bazarevsky and
+               Andrey Vakunov and
+               Andrei Tkachenka and
+               George Sung and
+               Chuo{-}Ling Chang and
+               Matthias Grundmann},
+  title     = {MediaPipe Hands: On-device Real-time Hand Tracking},
+  journal   = {CoRR},
+  volume    = {abs/2006.10214},
+  year      = {2020},
+  url       = {https://arxiv.org/abs/2006.10214},
+  eprinttype = {arXiv},
+  eprint    = {2006.10214},
+  timestamp = {Tue, 23 Jun 2020 17:57:22 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-2006-10214.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }

@@ -1,0 +1,11 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Air Drawing}
+
+With the progression of hand-tracking technology, many researchers have expressed interest in hand tracking as a means of computer interaction, as hand tracking is a natural way to express one's ideas. Studies show that visual cues can improve the remote work experience greatly\cite{SH, TEO}. Kim et al. have experimented with 3D sketching using hand tracking by having the user build up "air scaffolds" to constrain planes to draw on\cite{KIM}. Chen, et al. developed an application to input Chinese characters using a smart glasses’s camera\cite{CHEN}. Gulati et al. created a real-time drawing application using only a single RGB webcam, MediaPipe Hands, and OpenCV\cite{MPDrawing}. Combining real-time air drawing and optical character recognition to write mathematical expressions will be the main technical gap we're trying to address. 
+
+
+\subsection{MediaPipe}
+
+MediaPipe Hands is a finger-tracking solution utilizing MediaPipe - an open-source API by Google that provides numerous ML solutions - that achieves remarkable real-time performance using the processing power of only a mobile phone \cite{MediaPipeHands}. In this study, we utilize MediaPipe Hands in order to track the hand strokes by sampling landmarks on the user's hands once per frame. MediaPipe Hands was chosen due to its robustness as well as its lightweight cost, allowing our pipeline to perform in a live environment.

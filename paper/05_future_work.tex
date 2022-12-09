@@ -1,0 +1,10 @@
+\section{Future Work}
+\label{sec:futurework}
+
+As for air drawing, the interface could be made more accurate and user friendly. The current version of the air drawing would often take actions unwanted by the user through misinterpreting gestures. For example, the application would occasionally take screenshots while the user was still in the middle of writing an equation, due to false detecting the screenshot gesture. Also, due to nature of writing in the air, the resulting writing looks somewhat shaky, so we could implement some form of smoothing. Furthermore, there is currently no user-friendly interface for the application, so it would be difficult to navigate the gestures and controls for a new user.
+
+On the neural network side, the accuracy is not sufficient for practical use. While a $\leq$1 error of 35\% may be useful to a user unfamiliar with \LaTeX, experienced users of \LaTeX\ will likely find VTex largely useless.
+
+One simple way to improve the model is to use more data. Currently, each CROHME competition uses the same training set, only changing the test set each year. As a result, the amount of data available is sparse. This can be remedied by either 1) manually collecting more data or 2) applying transfer learning. The second option is much more feasible as similar datasets with much more images exist, e.g. {\tt IM2LATEX-100K}. 
+
+Additionally, one can aim to improve the architecture of the model. The current model is admittedly outdated as more modern methods of combining CNNs and transformers have been developed. Most recently, vision transformers have revolutionized the image recognition field, achieving comparable results with modern CNNs while utilizing fewer resources \cite{VTransformer}. The current architecture of combining a DenseNet CNN and transformer decoder results in a complex model that is prone to overfitting. A vision transformer can remedy this as it is a much simpler model. However, as vision transformers require extremely large amounts of data, transfer learning is necessary for good results.

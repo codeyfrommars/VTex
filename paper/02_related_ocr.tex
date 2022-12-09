@@ -1,0 +1,14 @@
+
+\subsection{Optical Character Recognition}
+
+OCR is the process of classifying and encoding characters within digital images. Due to its importance in numerous fields, OCR is a well-matured topic computer vision where various successful approaches have been developed. Neural Networks (NN) are one of the techniques among these approaches, and is the strategy that we employ in the VTex pipeline. Previous works demonstrate the success that NNs have found in OCR. A study by Sabourin \cite{SABOURIN1992843} shows that a multilayer perceptron network (MLP) is able to outperform other techniques in OCR such as dynamic contour warping classifiers. In recent years, convolutional neural networks such as ResNet \cite{Resnet2016} and DenseNet \cite{Densenet2017} have dominated this field as well as many other image classification problems.
+
+\subsection{Encoder-Decoder Models}
+
+Encoder-decoder models are by far the most popular architecture for natural language processing (NLP) applications, and math expression conversion is no exception. This architecture consists of two parts: an encoder and a decoder. As the names suggest, the encoder "encodes" the input (e.g. an image) to a hidden layer, and the decoder "decodes" the hidden layer to a sequence (e.g. a sentence). Genthial proposed an encoder-decoder model to tackle the {\tt IM2LATEX-100K} dataset, using a standard CNN for the encoder and a long short-term memory (LSTM) model for the decoder \cite{Genthial2016}. A beam search is then performed to predict a \LaTeX\ sequence given an input image. Wang improves the encoder-decoder by using a DenseNet encoder and adding spatial and channel-wise attention to the LSTM decoder \cite{Wang2019}. Peng utilizes a recurrent neural network (RNN) for the decoder and augments the encoder by using a graph neural network (GNN) to model spatial relationships between image symbols \cite{Peng2021}. The model proposed by Wang attempts to improve on previous models such as seq2seq by introducing a two-step training process, separating token-level and sequence-level training \cite{Wang2021}. Yan turns the encoder-decoder into a fully convolutional network by using both a convolutional encoder and convolutional decoder, exploiting parallel computation for increased efficiency \cite{ConvMath2021}. Perhaps closest to VTex, the BTTR model utilizes a transformer decoder, vastly improving efficiency and accuracy compared to RNNs \cite{ZhaoBTTR2021}.
+
+While this paper does not aim to improve upon current state of the art models, it does apply the current models to consumer-driven settings. Rather than document analysis (as is the goal by many competitions hosted by ICDAR), this paper targets document creation.
+
+
+
+

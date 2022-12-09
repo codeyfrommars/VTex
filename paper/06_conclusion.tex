@@ -1,0 +1,14 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+% Summarize our conclusion and improvements to be made.
+This paper presents a novel application of hand tracking and document analysis that provides a way to write \LaTeX\ equations using only a webcam. This app pipeline consists of two steps: air drawing via hand tracking and image-to-\LaTeX\ conversion via a neural network. 
+
+% TODO: summarize air drawing / mediapipe application
+Although the current airdrawing is not user-friendly and convenient, it still works really well. The user could still draw any expression that he wants with only some minor inaccurate hand detections. Due to the nature of airdrawing, the resulting strokes are shaky. More time could have spent on smoothing the strokes since this can improve \LaTeX\ prediction as well. 
+
+The neural network's performance lags behind its state-of-the-art competitors with only a ~20\% ExpRate. However, it still proves useful for novice applications with a $\leq5$ error rate of ~63\%. Training the network on a larger dataset could improve the performance, as could changing up the neural network architecture. 
+
+
+
+
