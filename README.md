@@ -1,5 +1,5 @@
 # VTex
-ECE379K Computer Vision Project\
+ECE379K Computer Vision Project
 
 ### Demo
 
@@ -26,7 +26,7 @@ python transformer/demo.py
 
 ### Training
 
-To train the model yourself, unzip data2.zip in `/transformer/`. Then, run `train.py` and `test.py`. You may need to modify some of the code to fit your machine.
+To train the model yourself, unzip data2.zip in `/transformer/`. Then, run `train.py` and `test.py`. You may need to modify the file paths in `transformer/dataset.py`
 
 
 
