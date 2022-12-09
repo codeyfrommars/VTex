@@ -1,5 +1,5 @@
 # VTex
-ECE379K Computer Vision Project\
+ECE379K Computer Vision Project
 
 ### Demo
 
@@ -15,7 +15,7 @@ To run the demo, run `bash demo.sh`. It may take a while to create a virtual env
 
 ### Training
 
-To train the model yourself, unzip data2.zip in `/transformer/`. Then, run `train.py` and `test.py`. You may need to modify some of the code to fit your machine.
+To train the model yourself, unzip data2.zip in `/transformer/`. Then, run `train.py` and `test.py`. You may need to modify the file paths in `transformer/dataset.py`
 
 
 
