@@ -5,6 +5,17 @@ ECE379K Computer Vision Project\
 
 To run the demo, run `bash demo.sh`. It may take a while to create a virtual environment, but the demo should start up automatically.
 
+This application has been tested on Python 3.9. Please use Python 3.9 if you are having trouble running it.
+
+If `bash demo.sh` does not run, then please run the following commands
+```
+python -m venv vtex
+source vtex/Scripts/activate
+
+pip install -r transformer/requirements.txt
+
+python transformer/demo.py
+```
 ### Usage
 
 - Draw with your right hand
