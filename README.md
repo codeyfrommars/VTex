@@ -1,6 +1,8 @@
 # VTex
 ECE379K Computer Vision Project
 
+https://youtu.be/9L5GGYViEtE
+
 ### Demo
 
 To run the demo, run `bash demo.sh`. It may take a while to create a virtual environment, but the demo should start up automatically.
