@@ -8,8 +8,8 @@ To run the demo, run `bash demo.sh`. It may take a while to create a virtual env
 ### Usage
 
 - Draw with your right hand
-- Holding up only your index finger will draw
-- Holding up both your index and middle finger will pause drawing
+- Holding up only your right index finger will draw
+- Holding up both your right index and right middle finger will pause drawing
 - Holding up four fingers on your right hand will take a screenshot and output the LaTeX code to the bash terminal
 - Holding up four fingers on your left hand will clear the screen
 
